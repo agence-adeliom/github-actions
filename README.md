@@ -23,3 +23,11 @@ jobs:
 Les workflow qui ne commencent pas par `callable-` peuvent être directement copiés dans votre projet pour aller plus vite.  
 Il faut juste bien penser à mettre à jour les valeurs renseignées dans la propriété
 `with`.
+
+## Liste des Workflows 
+
+- `deploy-ssh` - Deploy un site vers un serveur distant en passant par une connexion SSH
+- `wordpress-dependabot-update` - Approuve et merge les PR de dependabot après 
+que le build du site WP a fonctionné
+- `symfony-dependabot-update` - Approuve et merge les PR de dependabot après
+que le build du site Symfony a fonctionné
