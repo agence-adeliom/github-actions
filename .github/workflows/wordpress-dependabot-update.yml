@@ -13,7 +13,7 @@ on:
 
 jobs:
     wordpress-plugins-update:
-        uses: agence-adeliom/github-actions/.github/workflows/callable-wordpress-plugins-update.yml@main
+        uses: agence-adeliom/github-actions/.github/workflows/callable-wordpress-dependabot-update.yml@main
         with:
             theme: "theme-name"
             php: 8.0

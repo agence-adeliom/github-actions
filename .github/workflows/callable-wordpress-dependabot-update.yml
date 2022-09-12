@@ -12,6 +12,9 @@ on:
             node:
                 required: true
                 type: number
+            pro:
+                required: false
+                type: boolean
 
 # The commit SHA that triggered the workflow.
 # Pour éviter un double run sur le pull_target / pull_request_target
@@ -39,6 +42,7 @@ jobs:
 
             # On installe les plugins PRO
             - name: Install PRO WP plugins
+              if: ${{ input.pro }}
               run: php update_deps.php
 
             # On créé le cache de composer pour prendre moins de temps à build
