@@ -1,0 +1,19 @@
+name: Dependabot Symfony Update
+
+on:
+    pull_request:
+    pull_request_target:
+        branches:
+            - main
+            - master
+    push:
+        branches:
+            - main
+            - master
+
+jobs:
+    wordpress-plugins-update:
+        uses: agence-adeliom/github-actions/.github/workflows/callable-symfony-dependabot-update.yml@main
+        with:
+            php: 8.1
+            node: 18
