@@ -1,0 +1,113 @@
+name: Update WordPress plugins
+
+on:
+    workflow_call:
+        inputs:
+            theme:
+                required: true
+                type: string
+            php:
+                required: true
+                type: number
+            node:
+                required: true
+                type: number
+
+# The commit SHA that triggered the workflow.
+# Pour éviter un double run sur le pull_target / pull_request_target
+concurrency:
+    group: ${{ github.sha }}
+
+permissions:
+    pull-requests: write
+    issues: write
+    repository-projects: write
+    contents: write
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            # On copie le repo
+            - uses: actions/checkout@v3
+
+            # On installe PHP
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ input.php }}
+
+            # On installe les plugins PRO
+            - name: Install PRO WP plugins
+              run: php update_deps.php
+
+            # On créé le cache de composer pour prendre moins de temps à build
+            - name: Get Composer Cache Directory
+              id: composer-cache
+              run: |
+                  echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+            # On récupère le cache de composer du step précédent
+            - uses: actions/cache@v3
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+
+            - name: Check Composer lock file is up to date
+              run: composer validate --no-check-all
+
+            - name: Install Composer dependencies
+              run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+            # On install NodeJS
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ input.node }}
+                  cache: npm
+
+            # On install les dependances Node
+            - name: Install NPM dependencies
+              working-directory: ./web/wp-content/themes/${{ input.theme }}
+              run: npm ci
+
+            # On joue les tests front
+            - name: Run NPM test suite
+              working-directory: ./web/wp-content/themes/${{ input.theme }}
+              run: npm run test --if-present
+
+            # On build le front
+            - name: Try to build theme's assets
+              working-directory: ./web/wp-content/themes/${{ input.theme }}
+              run: npm run build --if-present
+
+    auto_approve_and_merge:
+        runs-on: ubuntu-latest
+        # Seulement si le job "Build" a fonctionné
+        needs: [ build ]
+        # Et que la PR vient de Dependabot
+        if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+        env:
+            PR_URL: ${{github.event.pull_request.html_url}}
+            GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        steps:
+            # On copie le repo
+            - uses: actions/checkout@v3
+
+            # On récupère les infos de la PR de Dependabot
+            - name: Fetch Dependabot metadata
+              id: metadata
+              uses: dependabot/fetch-metadata@v1.3.3
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
+            # On approuve la PR de Dependabot si la version de la lib maj n'est pas majeure
+            - name: Enable auto-approve for Dependabot PRs
+              if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+              run: gh pr review --approve "$PR_URL"
+
+            # On merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure
+            - name: Enable auto-merge for Dependabot PRs
+              if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+              run: gh pr merge --auto --merge "$PR_URL"

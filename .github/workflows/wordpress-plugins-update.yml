@@ -1,0 +1,15 @@
+name: Update WordPress plugins
+
+on:
+    push:
+        branches:
+            - master
+            - main
+
+jobs:
+    wordpress-plugins-update:
+        uses: agence-adeliom/github-actions/.github/workflows/wordpress-plugins-update.yml@main
+        with:
+            theme: "theme-name"
+            php: 8.0
+            node: 16
