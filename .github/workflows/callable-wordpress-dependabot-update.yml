@@ -38,11 +38,11 @@ jobs:
             - name: Setup PHP
               uses: shivammathur/setup-php@v2
               with:
-                  php-version: ${{ input.php }}
+                  php-version: ${{ inputs.php }}
 
             # On installe les plugins PRO
             - name: Install PRO WP plugins
-              if: ${{ input.pro }}
+              if: ${{ inputs.pro }}
               run: php update_deps.php
 
             # On créé le cache de composer pour prendre moins de temps à build
@@ -68,22 +68,22 @@ jobs:
             # On install NodeJS
             - uses: actions/setup-node@v3
               with:
-                  node-version: ${{ input.node }}
+                  node-version: ${{ inputs.node }}
                   cache: npm
 
             # On install les dependances Node
             - name: Install NPM dependencies
-              working-directory: ./web/wp-content/themes/${{ input.theme }}
+              working-directory: ./web/wp-content/themes/${{ inputs.theme }}
               run: npm ci
 
             # On joue les tests front
             - name: Run NPM test suite
-              working-directory: ./web/wp-content/themes/${{ input.theme }}
+              working-directory: ./web/wp-content/themes/${{ inputs.theme }}
               run: npm run test --if-present
 
             # On build le front
             - name: Try to build theme's assets
-              working-directory: ./web/wp-content/themes/${{ input.theme }}
+              working-directory: ./web/wp-content/themes/${{ inputs.theme }}
               run: npm run build --if-present
 
     auto_approve_and_merge:
