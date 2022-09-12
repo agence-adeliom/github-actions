@@ -1,0 +1,64 @@
+name: SSH Deploy
+
+on:
+    workflow_call:
+        inputs:
+            php:
+                required: true
+                type: number
+            node:
+                required: true
+                type: number
+            branch:
+                required: false
+                type: string
+                default: ""
+            deployer:
+                required: false
+                type: string
+                default: "7.0.1"
+        secrets:
+            PRIVATE_KEY:
+                required: true
+            PERSONAL_TOKEN:
+                required: true
+
+jobs:
+    deployer:
+        name: 🎉 Deployer
+        runs-on: ubuntu-latest
+        steps:
+            - name: Récupération du repository
+              uses: actions/checkout@v3
+
+            - name: Installation de PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ inputs.php }}
+                  coverage: xdebug
+
+            - name: Validation du composer.lock
+              run: composer validate --no-check-all
+
+            - name: Installation des dépendances Composer
+              run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+            - name: Installation de NodeJS ${{ inputs.node }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ inputs.node }}
+
+            - name: Installation des dépendances NPM
+              run: npm ci
+
+            - name: Lancement des test NPM
+              run: npm run test --if-present
+
+            - name: Déploiement sur le serveur
+              uses: deployphp/action@v1
+              with:
+                  private-key: ${{ secrets.PRIVATE_KEY }}
+                  dep: deploy ${{ inputs.branch }}
+                  deployer-version: ${{ input.deployer }}
+              env:
+                  PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}

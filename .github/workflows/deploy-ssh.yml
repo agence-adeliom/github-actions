@@ -1,0 +1,19 @@
+name: SSH Deploy
+
+on:
+    push:
+        branches:
+            - main
+            - staging
+
+jobs:
+    deploy:
+        uses: agence-adeliom/github-actions/.github/workflows/callable-deploy-ssh.yml@main
+        with:
+            php: 8.0
+            node: 16
+            branch: ${{ github.ref_name }}
+            deployer: "7.0.1"
+        secrets:
+            PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+            PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
