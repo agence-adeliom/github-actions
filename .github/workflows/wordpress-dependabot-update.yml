@@ -1,0 +1,20 @@
+name: Dependabot WordPress Update
+
+on:
+    pull_request:
+    pull_request_target:
+        branches:
+            - main
+            - master
+    push:
+        branches:
+            - main
+            - master
+
+jobs:
+    wordpress-plugins-update:
+        uses: agence-adeliom/github-actions/.github/workflows/callable-wordpress-plugins-update.yml@main
+        with:
+            theme: "theme-name"
+            php: 8.0
+            node: 16
