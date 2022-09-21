@@ -1,0 +1,41 @@
+name: Deploy manually
+
+on:
+    workflow_dispatch:
+        inputs:
+            HOST:
+                required: true
+                type: choice
+                description: ""
+                default: "staging"
+                options:
+                    - production
+                    - staging
+            BRANCH:
+                description: ""
+                required: false
+                default: "develop"
+                type: string
+            PHP:
+                description: ""
+                required: false
+                default: "8.1"
+                type: string
+            NODE:
+                description: ""
+                required: false
+                default: "16"
+                type: string
+
+jobs:
+    deploy:
+        if: ${{ github.event.inputs.HOST && github.event.inputs.BRANCH }}
+        uses: agence-adeliom/github-actions/.github/workflows/callable-deployer.yml@main
+        with:
+            php: ${{ github.event.inputs.PHP }}
+            node: ${{ github.event.inputs.NODE }}
+            branch: ${{ github.event.inputs.BRANCH }}
+        secrets:
+            PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+            PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+            DEPLOYER_INVENTORY: ${{ secrets.DEPLOYER_INVENTORY }}
