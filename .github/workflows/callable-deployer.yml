@@ -1,4 +1,4 @@
-name: SSH Deploy
+name: Deployer
 
 on:
     workflow_call:
@@ -10,17 +10,18 @@ on:
                 required: true
                 type: number
             branch:
-                required: false
+                required: true
                 type: string
-                default: ""
             deployer:
                 required: false
                 type: string
-                default: "7.0.1"
+                default: "7.0.2"
         secrets:
             PRIVATE_KEY:
                 required: true
             PERSONAL_TOKEN:
+                required: true
+            DEPLOYER_INVENTORY:
                 required: true
 
 jobs:
@@ -28,8 +29,25 @@ jobs:
         name: 🎉 Deployer
         runs-on: ubuntu-latest
         steps:
+            - name: Définition du host
+              if: ${{ inputs.BRANCH == 'main' || inputs.BRANCH == 'master' }}
+              run: echo "HOST=production" >> $GITHUB_ENV
+              shell: bash
+
+            - name: Définition du host
+              if: ${{ inputs.BRANCH == 'develop' }}
+              run: echo "HOST=staging" >> $GITHUB_ENV
+              shell: bash
+
             - name: Récupération du repository
+              if: ${{ env.HOST }}
               uses: actions/checkout@v3
+
+            - name: Retrieve the secret inventory and decode it to a file
+              env:
+                  DEPLOYER_INVENTORY: ${{ secrets.DEPLOYER_INVENTORY }}
+              run: |
+                  echo $DEPLOYER_INVENTORY | base64 --decode > inventory.yaml
 
             - name: Installation de PHP
               uses: shivammathur/setup-php@v2
@@ -54,11 +72,11 @@ jobs:
             - name: Lancement des test NPM
               run: npm run test --if-present
 
-            - name: Déploiement sur le serveur
+            - name: Déploiement sur l'environnement ${{ env.HOST }} avec la branche ${{ inputs.BRANCH }}
               uses: deployphp/action@v1
               with:
-                  private-key: ${{ secrets.PRIVATE_KEY }}
-                  dep: deploy ${{ inputs.branch }}
                   deployer-version: ${{ input.deployer }}
+                  private-key: ${{ secrets.PRIVATE_KEY }}
+                  dep: deploy --branch=${{ inputs.BRANCH }} -n ${{ env.HOST }}
               env:
                   PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}

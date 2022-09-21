@@ -26,7 +26,7 @@ Il faut juste bien penser à mettre à jour les valeurs renseignées dans la pro
 
 ## Liste des Workflows 
 
-- `deploy-ssh` - Deploy un site vers un serveur distant en passant par une connexion SSH
+- `deployer` - Deploy un site vers un serveur distant en passant par une connexion SSH
 - `wordpress-dependabot-update` - Approuve et merge les PR de dependabot après 
 que le build du site WP a fonctionné
 - `symfony-dependabot-update` - Approuve et merge les PR de dependabot après

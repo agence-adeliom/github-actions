@@ -1,0 +1,19 @@
+name: Deployer
+
+on:
+    push:
+        branches:
+            - main
+            - develop
+
+jobs:
+    deploy:
+        uses: agence-adeliom/github-actions/.github/workflows/callable-deployer.yml@main
+        with:
+            php: 8.1
+            node: 16
+            branch: ${{ github.ref_name }}
+        secrets:
+            PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+            PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+            DEPLOYER_INVENTORY: ${{ secrets.DEPLOYER_INVENTORY }}
