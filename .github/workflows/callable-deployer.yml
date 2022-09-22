@@ -75,7 +75,7 @@ jobs:
             - name: Déploiement sur l'environnement ${{ env.HOST }} avec la branche ${{ inputs.BRANCH }}
               uses: deployphp/action@v1
               with:
-                  deployer-version: ${{ input.deployer }}
+                  deployer-version: ${{ inputs.deployer }}
                   private-key: ${{ secrets.PRIVATE_KEY }}
                   dep: deploy --branch=${{ inputs.BRANCH }} -n ${{ env.HOST }}
               env:

@@ -1,0 +1,79 @@
+name: Deploy WordPress
+
+on:
+    push:
+        branches:
+            - prod
+            - recette
+
+env:
+    php: 8.1
+    node: 16
+    theme_name: "adeliom"
+
+permissions:
+    pull-requests: write
+    issues: write
+    repository-projects: write
+    contents: write
+
+concurrency: adeliom_deploy
+
+jobs:
+    deploy:
+        name: Déploiement
+        runs-on: ubuntu-latest
+        steps:
+            - name: Définition de la variable HOST pour env production
+              if: ${{ github.ref_name == 'prod' }}
+              run: echo "HOST=production" >> $GITHUB_ENV
+              shell: bash
+
+            - name: Définition de la variable HOST pour env staging
+              if: ${{ github.ref_name == 'recette' }}
+              run: echo "HOST=staging" >> $GITHUB_ENV
+              shell: bash
+
+            - uses: actions/checkout@v3
+
+            - name: Retrieve the secret inventory and decode it to a file
+              env:
+                  DEPLOYER_INVENTORY: ${{ secrets.DEPLOYER_INVENTORY }}
+              run: |
+                  echo $DEPLOYER_INVENTORY | base64 --decode > inventory.yaml
+
+            - name: Installation de PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ env.php }}
+                  coverage: xdebug
+
+            - name: Validation du composer.lock
+              run: composer validate --no-check-all
+
+            - name: Installation des dépendances Composer
+              run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+            - name: Installation de NodeJS ${{ env.node }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ env.node }}
+
+            - name: Installation des dépendances NPM
+              working-directory: ./web/app/themes/${{ inputs.theme }}
+              run: npm ci
+
+            - name: Lancement des test NPM
+              working-directory: ./web/app/themes/${{ inputs.theme }}
+              run: npm run test --if-present
+
+            - name: Compilation du front
+              working-directory: ./web/app/themes/${{ inputs.theme }}
+              run: npm run build --if-present
+
+            - name: Deploy branch ${{ github.ref_name }} to ${{ env.HOST }}
+              uses: deployphp/action@v1
+              with:
+                  deployer-version: "7.0.2"
+                  private-key: ${{ secrets.PRIVATE_KEY }}
+                  dep: deploy --branch=${{ github.ref_name }} -n ${{ env.HOST }}
