@@ -2,6 +2,11 @@ name: Deploy Only
 
 on:
     workflow_call:
+        inputs:
+            branch:
+                required: false
+                description: "La branche à utiliser"
+                type: string
 
 permissions:
     pull-requests: write
@@ -17,12 +22,12 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Définition de la variable HOST pour env production
-              if: ${{ github.ref_name == 'prod' }}
+              if: ${{ (inputs.branch && inputs.branch == 'prod') || github.ref_name == 'prod' }}
               run: echo "HOST=production" >> $GITHUB_ENV
               shell: bash
 
             - name: Définition de la variable HOST pour env staging
-              if: ${{ github.ref_name == 'recette' }}
+              if: ${{ (inputs.branch && inputs.branch == 'recette') || github.ref_name == 'recette' }}
               run: echo "HOST=staging" >> $GITHUB_ENV
               shell: bash
 
@@ -34,9 +39,9 @@ jobs:
               run: |
                   echo $DEPLOYER_INVENTORY | base64 --decode > inventory.yaml
 
-            - name: Deploy branch ${{ github.ref_name }} to ${{ env.HOST }}
+            - name: Deploy branch ${{ inputs.branch || github.ref_name }} to ${{ env.HOST }}
               uses: deployphp/action@v1
               with:
                   deployer-version: "7.0.2"
                   private-key: ${{ secrets.PRIVATE_KEY }}
-                  dep: deploy --branch=${{ github.ref_name }} -n ${{ env.HOST }}
+                  dep: deploy --branch=${{ inputs.branch || github.ref_name }} -n ${{ env.HOST }}
