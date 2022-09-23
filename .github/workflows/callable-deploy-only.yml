@@ -22,12 +22,12 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Définition de la variable HOST pour env production
-              if: ${{ (inputs.branch && inputs.branch == 'prod') || github.ref_name == 'prod' }}
+              if: ${{ ((inputs.branch && inputs.branch == 'prod') || github.ref_name == 'prod') || ((inputs.branch && inputs.branch == 'master') || github.ref_name == 'master') }}
               run: echo "HOST=production" >> $GITHUB_ENV
               shell: bash
 
             - name: Définition de la variable HOST pour env staging
-              if: ${{ (inputs.branch && inputs.branch == 'recette') || github.ref_name == 'recette' }}
+              if: ${{ ((inputs.branch && inputs.branch == 'recette') || github.ref_name == 'recette') || ((inputs.branch && inputs.branch == 'develop') || github.ref_name == 'develop') }}
               run: echo "HOST=staging" >> $GITHUB_ENV
               shell: bash
 
