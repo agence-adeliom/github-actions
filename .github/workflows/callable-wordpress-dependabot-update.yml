@@ -16,6 +16,23 @@ on:
                 required: false
             ACF_PRO_KEY:
                 required: false
+        outputs:
+            dependency-names: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.dependency-names }}
+            previous-version: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.previous-version }}
+            new-version: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.new-version }}
+            package-ecosystem: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.package-ecosystem }}
+            update-type: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.update-type }}
+            dependency-type: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.dependency-type }}
+            package-type: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.dependency-type }}
+            status: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.status }}
 
 # The commit SHA that triggered the workflow.
 # Pour éviter un double run sur le pull_target / pull_request_target
@@ -33,6 +50,15 @@ jobs:
         runs-on: ubuntu-latest
         # Et que la PR vient de Dependabot
         if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+        outputs:
+          dependency-names: ${{ steps.metadata.outputs.dependency-names }}
+          previous-version: ${{ steps.metadata.outputs.previous-version }}
+          new-version: ${{ steps.metadata.outputs.new-version }}
+          package-ecosystem: ${{ steps.metadata.outputs.package-ecosystem }}
+          update-type: ${{ steps.metadata.outputs.update-type }}
+          dependency-type: ${{ steps.metadata.outputs.dependency-type }}
+          package-type: ${{ steps.package.outputs.type }}
+          status: ${{ steps.merge.outputs.status }}
         env:
             PR_URL: ${{github.event.pull_request.html_url}}
             GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
@@ -74,9 +100,11 @@ jobs:
 
             # On approve et merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure sauf pour les plugin Wordpress
             - name: Enable auto-approve/merge for Dependabot PRs
+              id: merge
               if: |
                 steps.metadata.outputs.update-type != 'version-update:semver-major'
                 || (steps.package && contains('["wordpress-muplugin", "wordpress-plugin", "wordpress-language"]', steps.package.outputs.type))
               run: |
-                gh pr review --approve "$PR_URL"
-                gh pr merge --auto --merge "$PR_URL"
+                echo "::set-output name=status::pending"
+                gh pr review --approve "$PR_URL" && echo "::set-output name=status::approved"
+                gh pr merge --auto --merge "$PR_URL" && echo "::set-output name=status::updated"

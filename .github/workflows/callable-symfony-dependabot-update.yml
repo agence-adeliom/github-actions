@@ -11,6 +11,23 @@ on:
                 required: true
                 type: string
                 default: "18"
+        outputs:
+            dependency-names: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.dependency-names }}
+            previous-version: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.previous-version }}
+            new-version: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.new-version }}
+            package-ecosystem: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.package-ecosystem }}
+            update-type: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.update-type }}
+            dependency-type: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.dependency-type }}
+            package-type: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.dependency-type }}
+            status: 
+                value: ${{ jobs.auto_approve_and_merge.outputs.status }}
 
 # The commit SHA that triggered the workflow.
 # Pour éviter un double run sur le pull_target / pull_request_target
@@ -28,11 +45,26 @@ jobs:
         runs-on: ubuntu-latest
         if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
         env:
-            PR_URL: ${{github.event.pull_request.html_url}}
+            PR_URL: ${{ github.event.pull_request.html_url }}
             GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        outputs:
+          dependency-names: ${{ steps.metadata.outputs.dependency-names }}
+          previous-version: ${{ steps.metadata.outputs.previous-version }}
+          new-version: ${{ steps.metadata.outputs.new-version }}
+          package-ecosystem: ${{ steps.metadata.outputs.package-ecosystem }}
+          update-type: ${{ steps.metadata.outputs.update-type }}
+          dependency-type: ${{ steps.metadata.outputs.dependency-type }}
+          package-type: ${{ steps.package.outputs.type }}
+          status: ${{ steps.merge.outputs.status }}
         steps:
             # On copie le repo
             - uses: actions/checkout@v3
+
+            # On installe PHP
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ inputs.php }}
 
             # On récupère les infos de la PR de Dependabot
             - name: Fetch Dependabot metadata
@@ -41,9 +73,19 @@ jobs:
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
 
+            - name: Get composer infos for ${{ steps.metadata.outputs.dependency-names }}
+              if: steps.metadata.outputs.package-ecosystem == 'composer'
+              id: package
+              run: |
+                type=$( composer info ${{ steps.metadata.outputs.dependency-names }} --all --format json --no-ansi | jq '.type' )
+                echo "::set-output name=type::$type"
+
             # On approve et merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure
             - name: Enable auto-approve/merge for Dependabot PRs
+              id: merge
               if: steps.metadata.outputs.update-type != 'version-update:semver-major'
               run: |
-                gh pr review --approve "$PR_URL"
-                gh pr merge --auto --merge "$PR_URL"
+                echo "::set-output name=status::pending"
+                gh pr review --approve "$PR_URL" && echo "::set-output name=status::approved"
+                gh pr merge --auto --merge "$PR_URL" && echo "::set-output name=status::updated"
+                
