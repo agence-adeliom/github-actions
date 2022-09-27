@@ -1,0 +1,65 @@
+name: Install project libs and compile
+
+on:
+    workflow_call:
+        inputs:
+            php:
+                required: true
+                type: string
+                default: "8.1"
+            node:
+                required: true
+                type: string
+                default: "18"
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+             # On copie le repo
+            - uses: actions/checkout@v3
+
+            # On installe PHP
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ inputs.php }}
+
+            # On créé le cache de composer pour prendre moins de temps à build
+            - name: Get Composer Cache Directory
+              id: composer-cache
+              run: |
+                  echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+            # On récupère le cache de composer du step précédent
+            - uses: actions/cache@v3
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+
+            - name: Check Composer lock file is up to date
+              run: composer validate --no-check-all
+
+            - name: Install Composer dependencies
+              run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+            # On install NodeJS
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ inputs.node }}
+                  cache: npm
+                  cache-dependency-path: '**/package-lock.json'
+
+            # On install les dependances Node
+            - name: Install NPM dependencies
+              run: npm ci
+
+            # On joue les tests front
+            - name: Run NPM test suite
+              run: npm run test --if-present
+
+            # On build le front
+            - name: Try to build theme's assets
+              run: npm run build --if-present

@@ -1,0 +1,92 @@
+name: Install project libs and compile
+
+on:
+    workflow_call:
+        inputs:
+            php:
+                required: true
+                type: string
+                default: "8.1"
+            node:
+                required: true
+                type: string
+                default: "18"
+        secrets:
+            GRAVITYFORMS_KEY:
+                required: false
+            ACF_PRO_KEY:
+                required: false
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            # On copie le repo
+            - uses: actions/checkout@v3
+
+            # On installe PHP
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ inputs.php }}
+
+            # On installe les plugins PRO
+            - name: Install PRO WP plugins with Hack for OVH
+              run: |
+                if test -f "update_deps.php"; then
+                  php update_deps.php
+                fi
+
+            - name: Composer auth for Gravity Forms
+              env:
+                KEY: ${{ secrets.GRAVITYFORMS_KEY }}
+              if: "${{ env.KEY != '' }}"
+              run: composer config http-basic.gf-composer-proxy.arnaud-ritti.workers.dev licensekey ${{ env.KEY }}
+            
+            - name: Composer auth for ACF Pro
+              env:
+                KEY: ${{ secrets.ACF_PRO_KEY }}
+              if: "${{ env.KEY != '' }}"
+              run: composer config http-basic.auth-acf-composer-proxy.pivvenit.net licensekey ${{ env.KEY }}
+
+            # On créé le cache de composer pour prendre moins de temps à build
+            - name: Get Composer Cache Directory
+              id: composer-cache
+              run: |
+                  echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+            # On récupère le cache de composer du step précédent
+            - uses: actions/cache@v3
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+
+            - name: Check Composer lock file is up to date
+              run: composer validate --no-check-all
+
+            - name: Install Composer dependencies
+              run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+            # On install NodeJS
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ inputs.node }}
+                  cache: npm
+                  cache-dependency-path: '**/package-lock.json'
+
+            # On install les dependances Node
+            - name: Install NPM dependencies
+              working-directory: ./web/app/themes/${{ inputs.theme }}
+              run: npm ci
+
+            # On joue les tests front
+            - name: Run NPM test suite
+              working-directory: ./web/app/themes/${{ inputs.theme }}
+              run: npm run test --if-present
+
+            # On build le front
+            - name: Try to build theme's assets
+              working-directory: ./web/app/themes/${{ inputs.theme }}
+              run: npm run build --if-present || npm run build:production --if-present

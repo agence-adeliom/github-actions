@@ -5,10 +5,12 @@ on:
         inputs:
             php:
                 required: true
-                type: number
+                type: string
+                default: "8.1"
             node:
                 required: true
-                type: number
+                type: string
+                default: "18"
             branch:
                 required: true
                 type: string
