@@ -72,20 +72,33 @@ jobs:
               uses: dependabot/fetch-metadata@v1.3.3
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
-
+                
             - name: Get composer infos for ${{ steps.metadata.outputs.dependency-names }}
               if: steps.metadata.outputs.package-ecosystem == 'composer'
               id: package
+              continue-on-error: true
               run: |
                 type=$( composer info ${{ steps.metadata.outputs.dependency-names }} --all --format json --no-ansi | jq '.type' )
                 echo "::set-output name=type::$type"
+
+            - if: ${{ steps.package.conclusion == 'skipped'}}
+              run: |
+                echo "::set-output name=type::dependency"
 
             # On approve et merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure
             - name: Enable auto-approve/merge for Dependabot PRs
               id: merge
               if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+              continue-on-error: true
               run: |
                 echo "::set-output name=status::pending"
                 gh pr review --approve "$PR_URL" && echo "::set-output name=status::approved"
                 gh pr merge --auto --merge "$PR_URL" && echo "::set-output name=status::updated"
-                
+
+            - if: ${{ steps.merge.conclusion == 'skipped'}}
+              run: |
+                echo "::set-output name=status::skipped"
+            
+            - if: ${{ steps.merge.conclusion == 'failure'}}
+              run: |
+                echo "::set-output name=status::failed"
