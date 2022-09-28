@@ -4,11 +4,11 @@ on:
     workflow_call:
         inputs:
             php:
-                required: true
+                required: false
                 type: string
                 default: "8.1"
             node:
-                required: true
+                required: false
                 type: string
                 default: "18"
         secrets:

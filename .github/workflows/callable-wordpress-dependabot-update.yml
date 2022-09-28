@@ -4,17 +4,23 @@ on:
     workflow_call:
         inputs:
             php:
-                required: true
+                required: false
                 type: string
                 default: "8.1"
             node:
-                required: true
+                required: false
                 type: string
                 default: "18"
+            webhook_endpoint:
+                required: false
+                type: string
+                default: "https://log-api.eu.newrelic.com/log/v1"
         secrets:
             GRAVITYFORMS_KEY:
                 required: false
             ACF_PRO_KEY:
+                required: false
+            WEBHOOK_KEY:
                 required: false
         outputs:
             dependency-names: 
@@ -49,7 +55,7 @@ jobs:
     auto_approve_and_merge:
         runs-on: ubuntu-latest
         # Et que la PR vient de Dependabot
-        if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+        if: ${{ github.actor == 'dependabot[bot]' }}
         outputs:
           dependency-names: ${{ steps.metadata.outputs.dependency-names }}
           previous-version: ${{ steps.metadata.outputs.previous-version }}
@@ -94,13 +100,19 @@ jobs:
             - name: Get composer infos for ${{ steps.metadata.outputs.dependency-names }}
               if: steps.metadata.outputs.package-ecosystem == 'composer'
               id: package
+              continue-on-error: true
               run: |
                 type=$( composer info ${{ steps.metadata.outputs.dependency-names }} --all --format json --no-ansi | jq '.type' )
                 echo "::set-output name=type::$type"
 
+            - if: ${{ steps.package.conclusion == 'skipped'}}
+              run: |
+                echo "::set-output name=type::dependency"
+
             # On approve et merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure sauf pour les plugin Wordpress
             - name: Enable auto-approve/merge for Dependabot PRs
               id: merge
+              continue-on-error: true
               if: |
                 steps.metadata.outputs.update-type != 'version-update:semver-major'
                 || (steps.package && contains('["wordpress-muplugin", "wordpress-plugin", "wordpress-language"]', steps.package.outputs.type))
@@ -108,3 +120,53 @@ jobs:
                 echo "::set-output name=status::pending"
                 gh pr review --approve "$PR_URL" && echo "::set-output name=status::approved"
                 gh pr merge --auto --merge "$PR_URL" && echo "::set-output name=status::updated"
+
+            - if: ${{ steps.merge.conclusion == 'skipped'}}
+              run: |
+                echo "::set-output name=status::skipped"
+            
+            - if: ${{ steps.merge.conclusion == 'failure'}}
+              run: |
+                echo "::set-output name=status::failed"
+
+    notify:
+        runs-on: ubuntu-latest
+        needs: [auto_approve_and_merge]
+        env:
+          WEBHOOK_KEY: ${{ secrets.WEBHOOK_KEY }}
+        if: "${{ env.WEBHOOK_KEY != '' }}"
+        steps:
+          - name: Notify
+            id: notify
+            uses: fjogeleit/http-request-action@v1
+            with:
+              url: ${{ inputs.webhook_endpoint }}
+              method: 'POST'
+              customHeaders: |
+                {
+                  "Content-Type": "application/json",
+                  "Api-Key": "${{ secrets.WEBHOOK_KEY }}"
+                }
+              data: |
+                [{
+                   "common": {
+                     "attributes": {
+                       "logtype": "dependabot",
+                       "repository": "${{ github.repository }}",
+                       "projecttype": "wordpress"
+                     }
+                   },
+                   "logs": [{
+                      "message": "Bump ${{ needs.auto_approve_and_merge.outputs.dependency-names }} from ${{ needs.auto_approve_and_merge.outputs.previous-version }} to ${{ needs.auto_approve_and_merge.outputs.new-version }}",
+                      "attributes": {
+                        "dependencyNames": "${{ needs.auto_approve_and_merge.outputs.dependency-names }}",
+                        "previousVersion": "${{ needs.auto_approve_and_merge.outputs.previous-version }}",
+                        "newVersion": "${{ needs.auto_approve_and_merge.outputs.new-version }}",
+                        "packageEcosystem": "${{ needs.auto_approve_and_merge.outputs.package-ecosystem }}",
+                        "updateType": "${{ needs.auto_approve_and_merge.outputs.update-type }}",
+                        "dependencyType": "${{ needs.auto_approve_and_merge.outputs.dependency-type }}",
+                        "packageType": "${{ needs.auto_approve_and_merge.outputs.type }}",
+                        "status": "${{ needs.auto_approve_and_merge.outputs.status }}"
+                      }
+                    }]
+                }]
