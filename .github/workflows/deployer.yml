@@ -15,5 +15,4 @@ jobs:
             branch: ${{ github.ref_name }}
         secrets:
             PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-            PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
             DEPLOYER_INVENTORY: ${{ secrets.DEPLOYER_INVENTORY }}

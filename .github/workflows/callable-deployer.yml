@@ -21,8 +21,6 @@ on:
         secrets:
             PRIVATE_KEY:
                 required: true
-            PERSONAL_TOKEN:
-                required: true
             DEPLOYER_INVENTORY:
                 required: true
 
@@ -80,5 +78,3 @@ jobs:
                   deployer-version: ${{ inputs.deployer }}
                   private-key: ${{ secrets.PRIVATE_KEY }}
                   dep: deploy --branch=${{ inputs.BRANCH }} -n ${{ env.HOST }}
-              env:
-                  PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}

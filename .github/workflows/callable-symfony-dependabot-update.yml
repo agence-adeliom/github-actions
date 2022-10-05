@@ -16,7 +16,7 @@ on:
                 type: string
                 default: "https://log-api.eu.newrelic.com/log/v1"
         secrets:
-            WEBHOOK_KEY:
+            NEW_RELIC_API_KEY:
                 required: false
         outputs:
             dependency-names: 
@@ -114,8 +114,8 @@ jobs:
         runs-on: ubuntu-latest
         needs: [auto_approve_and_merge]
         env:
-          WEBHOOK_KEY: ${{ secrets.WEBHOOK_KEY }}
-        if: "${{ env.WEBHOOK_KEY != '' }}"
+          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+        if: "${{ env.NEW_RELIC_API_KEY != '' }}"
         steps:
           - name: Notify
             id: notify
@@ -126,7 +126,7 @@ jobs:
               customHeaders: |
                 {
                   "Content-Type": "application/json",
-                  "Api-Key": "${{ secrets.WEBHOOK_KEY }}"
+                  "Api-Key": "${{ secrets.NEW_RELIC_API_KEY }}"
                 }
               data: |
                 [{

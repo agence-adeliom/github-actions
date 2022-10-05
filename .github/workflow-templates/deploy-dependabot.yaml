@@ -21,7 +21,7 @@ permissions:
 
 jobs:
     install_project:
-        uses: agence-adeliom/github-actions/.github/workflows/callable-install-project.yml@main
+        uses: agence-adeliom/github-actions/.github/workflows/callable-install-symfony.yml@main
         with:
             php: ${{ env.php }}
             node: ${{ env.node }}
