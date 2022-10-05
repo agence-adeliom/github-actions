@@ -1,0 +1,63 @@
+name: Deployer Symfony
+
+on:
+    workflow_call:
+        inputs:
+            php:
+                required: true
+                type: string
+                default: "8.1"
+            node:
+                required: true
+                type: string
+                default: "18"
+            branch:
+                required: true
+                type: string
+            deployer:
+                required: false
+                type: string
+                default: "7.0.2"
+        secrets:
+            PRIVATE_KEY:
+                required: true
+            DEPLOYER_INVENTORY:
+                required: true
+
+jobs:
+    deployer:
+        name: 🎉 Deployer
+        runs-on: ubuntu-latest
+        steps:
+            - name: Définition du host
+              if: ${{ inputs.BRANCH == 'main' || inputs.BRANCH == 'master' }}
+              run: echo "HOST=production" >> $GITHUB_ENV
+              shell: bash
+
+            - name: Définition du host
+              if: ${{ inputs.BRANCH == 'develop' }}
+              run: echo "HOST=staging" >> $GITHUB_ENV
+              shell: bash
+
+            - name: Récupération du repository
+              if: ${{ env.HOST }}
+              uses: actions/checkout@v3
+
+            - name: Retrieve the secret inventory and decode it to a file
+              env:
+                  DEPLOYER_INVENTORY: ${{ secrets.DEPLOYER_INVENTORY }}
+              run: |
+                  echo $DEPLOYER_INVENTORY | base64 --decode > inventory.yaml
+
+            - name: Installation et compilation des librairies
+              uses: agence-adeliom/github-actions/.github/workflows/callable-install-symfony.yml@main
+              with:
+                  php: ${{ github.event.inputs.php }}
+                  node: ${{ github.event.inputs.node }}
+
+            - name: Déploiement sur l'environnement ${{ env.HOST }} avec la branche ${{ inputs.BRANCH }}
+              uses: deployphp/action@v1
+              with:
+                  deployer-version: ${{ inputs.deployer }}
+                  private-key: ${{ secrets.PRIVATE_KEY }}
+                  dep: deploy --branch=${{ inputs.BRANCH }} -n ${{ env.HOST }}

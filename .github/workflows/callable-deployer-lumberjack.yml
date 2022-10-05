@@ -1,4 +1,4 @@
-name: Deployer
+name: Deployer Lumberjack
 
 on:
     workflow_call:
@@ -22,6 +22,10 @@ on:
             PRIVATE_KEY:
                 required: true
             DEPLOYER_INVENTORY:
+                required: true
+            GRAVITYFORMS_KEY:
+                required: true
+            ACF_PRO_KEY:
                 required: true
 
 jobs:
@@ -49,28 +53,12 @@ jobs:
               run: |
                   echo $DEPLOYER_INVENTORY | base64 --decode > inventory.yaml
 
-            - name: Installation de PHP
-              uses: shivammathur/setup-php@v2
+            - name: Installation et compilation des librairies
+              uses: agence-adeliom/github-actions/.github/workflows/callable-install-lumberjack.yml@main
               with:
-                  php-version: ${{ inputs.php }}
-                  coverage: xdebug
-
-            - name: Validation du composer.lock
-              run: composer validate --no-check-all
-
-            - name: Installation des dépendances Composer
-              run: composer install --no-progress --prefer-dist --optimize-autoloader
-
-            - name: Installation de NodeJS ${{ inputs.node }}
-              uses: actions/setup-node@v3
-              with:
-                  node-version: ${{ inputs.node }}
-
-            - name: Installation des dépendances NPM
-              run: npm ci
-
-            - name: Lancement des test NPM
-              run: npm run test --if-present
+                theme: ${{ env.THEME }}
+                php: ${{ env.PHP_VERSION }}
+                node: ${{ env.NODE_VERSION }}
 
             - name: Déploiement sur l'environnement ${{ env.HOST }} avec la branche ${{ inputs.BRANCH }}
               uses: deployphp/action@v1

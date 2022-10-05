@@ -24,7 +24,7 @@ jobs:
 
     symfony-plugins-update:
         needs: [build]
-        uses: agence-adeliom/github-actions/.github/workflows/callable-symfony-dependabot-update.yml@main
+        uses: agence-adeliom/github-actions/.github/workflows/callable-dependabot-update-symfony.yml@main
         with:
             php: ${{ env.PHP_VERSION }}
             node: ${{ env.NODE_VERSION }}

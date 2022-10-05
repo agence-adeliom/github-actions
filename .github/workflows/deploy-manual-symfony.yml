@@ -1,4 +1,4 @@
-name: Deploy manually
+name: Deploy Symfony manually
 
 on:
     workflow_dispatch:
@@ -21,7 +21,7 @@ on:
 
 jobs:
     deploy:
-        uses: agence-adeliom/github-actions/.github/workflows/callable-deployer.yml@main
+        uses: agence-adeliom/github-actions/.github/workflows/callable-deployer-symfony.yml@main
         with:
             branch: ${{ github.event.inputs.BRANCH }}
             php: ${{ github.event.inputs.PHP }}

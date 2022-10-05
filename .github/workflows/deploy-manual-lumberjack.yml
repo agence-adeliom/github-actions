@@ -1,0 +1,32 @@
+name: Deploy Lumberjack manually
+
+on:
+    workflow_dispatch:
+        inputs:
+            BRANCH:
+                description: ""
+                required: true
+                default: "develop"
+                type: string
+            PHP:
+                description: ""
+                required: true
+                default: "8.1"
+                type: string
+            NODE:
+                description: ""
+                required: true
+                default: "18"
+                type: string
+
+jobs:
+    deploy:
+        uses: agence-adeliom/github-actions/.github/workflows/callable-deployer-lumberjack.yml@main
+        with:
+            branch: ${{ github.event.inputs.BRANCH }}
+            php: ${{ github.event.inputs.PHP }}
+            node: ${{ github.event.inputs.NODE }}
+        secrets:
+            PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+            PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+            DEPLOYER_INVENTORY: ${{ secrets.DEPLOYER_INVENTORY }}
