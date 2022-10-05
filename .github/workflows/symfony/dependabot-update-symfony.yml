@@ -17,14 +17,14 @@ env:
 
 jobs:
     build:
-        uses: agence-adeliom/github-actions/.github/workflows/callable-install-symfony.yml@main
+        uses: agence-adeliom/github-actions/.github/workflows/callable/symfony/callable-install-symfony.yml@main
         with:
             php: ${{ env.PHP_VERSION }}
             node: ${{ env.NODE_VERSION }}
 
     symfony-plugins-update:
         needs: [build]
-        uses: agence-adeliom/github-actions/.github/workflows/callable-dependabot-update-symfony.yml@main
+        uses: agence-adeliom/github-actions/.github/workflows/callable/symfony/callable-dependabot-update-symfony.yml@main
         with:
             php: ${{ env.PHP_VERSION }}
             node: ${{ env.NODE_VERSION }}
