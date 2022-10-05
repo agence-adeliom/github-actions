@@ -21,7 +21,7 @@ on:
 
 jobs:
     deploy:
-        uses: agence-adeliom/github-actions/.github/workflows/callable/lumberjack/callable-deployer-lumberjack.yml@main
+        uses: agence-adeliom/github-actions/.github/workflows/callable-lumberjack-deployer.yml@main
         with:
             branch: ${{ github.event.inputs.BRANCH }}
             php: ${{ github.event.inputs.PHP }}

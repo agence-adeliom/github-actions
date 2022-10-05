@@ -22,7 +22,7 @@ concurrency: adeliom_deploy
 jobs:
     deploy_manually:
         name: Déploiement manuel
-        uses: agence-adeliom/github-actions/.github/workflows/callable/callable-deploy-only.yml@main
+        uses: agence-adeliom/github-actions/.github/workflows/callable-deployer-deploy-only.yml@main
         with:
             branch: ${{ inputs.branch }}
         secrets:

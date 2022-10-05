@@ -21,19 +21,19 @@ permissions:
 
 jobs:
     install_project:
-        uses: agence-adeliom/github-actions/.github/workflows/callable/symfony/callable-install-symfony.yml@main
+        uses: agence-adeliom/github-actions/.github/workflows/callable-symfony-install.yml@main
         with:
             php: ${{ env.php }}
             node: ${{ env.node }}
 
     auto_approve_and_merge:
         needs: [ install_project ]
-        uses: agence-adeliom/github-actions/.github/workflows/callable/callable-approve-merge.yml@main
+        uses: agence-adeliom/github-actions/.github/workflows/callable-dependabot-approve-merge.yml@main
 
     deploy:
         needs: [ auto_approve_and_merge ]
         if: ${{ needs.auto_approve_and_merge.outputs.canMerge == 'success' }}
-        uses: agence-adeliom/github-actions/.github/workflows/callable/callable-deploy-only.yml@main
+        uses: agence-adeliom/github-actions/.github/workflows/callable-deployer-deploy-only.yml@main
         secrets:
             DEPLOYER_INVENTORY: ${{ secrets.DEPLOYER_INVENTORY }}
             PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}

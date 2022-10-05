@@ -1,4 +1,4 @@
-name: Deployer Symfony
+name: Deployer Lumberjack
 
 on:
     workflow_call:
@@ -22,6 +22,10 @@ on:
             PRIVATE_KEY:
                 required: true
             DEPLOYER_INVENTORY:
+                required: true
+            GRAVITYFORMS_KEY:
+                required: true
+            ACF_PRO_KEY:
                 required: true
 
 jobs:
@@ -50,10 +54,11 @@ jobs:
                   echo $DEPLOYER_INVENTORY | base64 --decode > inventory.yaml
 
             - name: Installation et compilation des librairies
-              uses: agence-adeliom/github-actions/.github/workflows/callable/symfony/callable-install-symfony.yml@main
+              uses: agence-adeliom/github-actions/.github/workflows/callable-lumberjack-install.yml@main
               with:
-                  php: ${{ github.event.inputs.php }}
-                  node: ${{ github.event.inputs.node }}
+                theme: ${{ env.THEME }}
+                php: ${{ env.PHP_VERSION }}
+                node: ${{ env.NODE_VERSION }}
 
             - name: Déploiement sur l'environnement ${{ env.HOST }} avec la branche ${{ inputs.BRANCH }}
               uses: deployphp/action@v1
