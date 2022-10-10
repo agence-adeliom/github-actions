@@ -3,6 +3,10 @@ name: Install project libs and compile
 on:
     workflow_call:
         inputs:
+            theme:
+                required: false
+                type: string
+                default: "adeliom"
             php:
                 required: false
                 type: string
