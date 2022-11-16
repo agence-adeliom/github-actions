@@ -116,6 +116,9 @@ jobs:
         steps:
           - name: Notify
             id: notify
+            env: 
+                NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+            if: ${{ env.NEW_RELIC_API_KEY != '' }}
             uses: fjogeleit/http-request-action@v1
             with:
               url: ${{ inputs.webhook_endpoint }}
