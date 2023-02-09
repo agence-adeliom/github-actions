@@ -62,7 +62,7 @@ jobs:
           update-type: ${{ steps.metadata.outputs.update-type }}
           dependency-type: ${{ steps.metadata.outputs.dependency-type }}
           package-type: ${{ steps.package.outputs.type }}
-          status: ${{ steps.merge.outputs.status }}
+          merge: ${{ steps.merge.outputs.status }}
         steps:
             # On copie le repo
             - uses: actions/checkout@v3
@@ -81,15 +81,14 @@ jobs:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Get composer infos for ${{ steps.metadata.outputs.dependency-names }}
-              if: steps.metadata.outputs.package-ecosystem == 'composer'
               id: package
               continue-on-error: true
               run: |
-                type=$( composer info ${{ steps.metadata.outputs.dependency-names }} --all --format json --no-ansi | jq '.type' )
-                echo "type=$type" >> $GITHUB_OUTPUT
-
-            - if: ${{ steps.package.conclusion == 'skipped'}}
-              run: echo "type=dependency" >> $GITHUB_OUTPUT
+                if [[ "${{ steps.metadata.outputs.package-ecosystem }}" = "composer" ]]; then
+                  echo "type=$( composer info ${{ steps.metadata.outputs.dependency-names }} --all --format json --no-ansi | jq '.type' )" >> $GITHUB_OUTPUT
+                else
+                  echo "type=dependency" >> $GITHUB_OUTPUT
+                if
 
             # On approve et merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure
             - name: Enable auto-approve/merge for Dependabot PRs
@@ -97,15 +96,15 @@ jobs:
               if: steps.metadata.outputs.update-type != 'version-update:semver-major'
               continue-on-error: true
               run: |
-                echo "status=pending" >> $GITHUB_OUTPUT
-                gh pr review --approve "$PR_URL" && echo "status=approved" >> $GITHUB_OUTPUT
-                gh pr merge --auto --merge "$PR_URL" && echo "status=updated" >> $GITHUB_OUTPUT
-
-            - if: ${{ steps.merge.conclusion == 'skipped'}}
-              run: echo "status=skipped" >> $GITHUB_OUTPUT
-
-            - if: ${{ steps.merge.conclusion == 'failure'}}
-              run: echo "status=failed" >> $GITHUB_OUTPUT
+                if [[ "${{ steps.metadata.outputs.update-type }}" = 'version-update:semver-major' ]]; then
+                  echo "status=pending" >> $GITHUB_OUTPUT
+                  gh pr review --approve "$PR_URL"
+                  echo "status=approved" >> $GITHUB_OUTPUT
+                  gh pr merge --auto --merge "$PR_URL"
+                  echo "status=updated" >> $GITHUB_OUTPUT
+                else
+                  echo "status=skipped" >> $GITHUB_OUTPUT
+                if
 
     notify:
         runs-on: ubuntu-latest
@@ -113,9 +112,6 @@ jobs:
         steps:
           - name: Notify
             id: notify
-            env:
-                NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-            if: ${{ env.NEW_RELIC_API_KEY != '' }}
             uses: fjogeleit/http-request-action@v1
             with:
               url: ${{ inputs.webhook_endpoint }}
