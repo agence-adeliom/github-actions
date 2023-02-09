@@ -107,7 +107,8 @@ jobs:
                        "attributes": {
                          "logtype": "dependabot",
                          "repository": "${{ github.repository }}",
-                         "projecttype": "symfony"
+                         "prUrl": "${{ github.event.pull_request.html_url }}",
+                         "projectType": "symfony"
                        }
                      },
                      "logs": [{
@@ -130,7 +131,7 @@ jobs:
               id: merge
               continue-on-error: true
               run: |
-                if [[ "${{ steps.metadata.outputs.update-type }}" = 'version-update:semver-major' ]]; then
+                if [[ "${{ steps.metadata.outputs.update-type }}" != 'version-update:semver-major' ]]; then
                   echo "status=pending" >> $GITHUB_OUTPUT
                   gh pr review --approve "$PR_URL"
                   echo "status=approved" >> $GITHUB_OUTPUT
@@ -161,7 +162,8 @@ jobs:
                      "attributes": {
                        "logtype": "dependabot",
                        "repository": "${{ github.repository }}",
-                       "projecttype": "symfony"
+                       "prUrl": "${{ github.event.pull_request.html_url }}",
+                       "projectType": "symfony"
                      }
                    },
                    "logs": [{
