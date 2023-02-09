@@ -76,7 +76,7 @@ jobs:
             # On récupère les infos de la PR de Dependabot
             - name: Fetch Dependabot metadata
               id: metadata
-              uses: dependabot/fetch-metadata@v1.3.3
+              uses: dependabot/fetch-metadata@v1.3.6
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
 
