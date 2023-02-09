@@ -90,10 +90,44 @@ jobs:
                   echo "type=dependency" >> $GITHUB_OUTPUT
                 if
 
-            # On approve et merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure
+            - name: Notify
+              uses: fjogeleit/http-request-action@v1
+              if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+              with:
+                url: ${{ inputs.webhook_endpoint }}
+                method: 'POST'
+                customHeaders: |
+                  {
+                    "Content-Type": "application/json",
+                    "Api-Key": "${{ secrets.NEW_RELIC_API_KEY }}"
+                  }
+                data: |
+                  [{
+                     "common": {
+                       "attributes": {
+                         "logtype": "dependabot",
+                         "repository": "${{ github.repository }}",
+                         "projecttype": "symfony"
+                       }
+                     },
+                     "logs": [{
+                        "message": "Bump ${{ steps.metadata.outputs.dependency-names }} from ${{ steps.metadata.outputs.previous-version }} to ${{ steps.metadata.outputs.new-version }}",
+                        "attributes": {
+                          "dependencyNames": "${{ steps.metadata.outputs.dependency-names }}",
+                          "previousVersion": "${{ steps.metadata.outputs.previous-version }}",
+                          "newVersion": "${{ steps.metadata.outputs.new-version }}",
+                          "packageEcosystem": "${{ steps.metadata.outputs.package-ecosystem }}",
+                          "updateType": "${{ steps.metadata.outputs.update-type }}",
+                          "dependencyType": "${{ steps.metadata.outputs.dependency-type }}",
+                          "packageType": "${{ steps.package.outputs.type }}",
+                          "status": "pending"
+                        }
+                      }]
+                  }]
+
+              # On approve et merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure
             - name: Enable auto-approve/merge for Dependabot PRs
               id: merge
-              if: steps.metadata.outputs.update-type != 'version-update:semver-major'
               continue-on-error: true
               run: |
                 if [[ "${{ steps.metadata.outputs.update-type }}" = 'version-update:semver-major' ]]; then
