@@ -88,7 +88,7 @@ jobs:
                   echo "type=$( composer info ${{ steps.metadata.outputs.dependency-names }} --all --format json --no-ansi | jq '.type' )" >> $GITHUB_OUTPUT
                 else
                   echo "type=dependency" >> $GITHUB_OUTPUT
-                if
+                fi
 
             - name: Notify
               uses: fjogeleit/http-request-action@v1
@@ -138,7 +138,7 @@ jobs:
                   echo "status=updated" >> $GITHUB_OUTPUT
                 else
                   echo "status=skipped" >> $GITHUB_OUTPUT
-                if
+                fi
 
     notify:
         runs-on: ubuntu-latest
