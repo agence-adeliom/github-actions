@@ -28,8 +28,7 @@ jobs:
             # On créé le cache de composer pour prendre moins de temps à build
             - name: Get Composer Cache Directory
               id: composer-cache
-              run: |
-                  echo "::set-output name=dir::$(composer config cache-files-dir)"
+              run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
             # On récupère le cache de composer du step précédent
             - uses: actions/cache@v3

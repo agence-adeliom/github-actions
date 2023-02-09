@@ -35,5 +35,5 @@ jobs:
 
             - name: Output can merge ?
               id: canMerge
-              run: echo "::set-output name=canMerge::${{steps.prMerge.outcome}}"
+              run: echo "canMerge=${{steps.prMerge.outcome}}" >> $GITHUB_OUTPUT
               shell: bash

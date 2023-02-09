@@ -19,21 +19,21 @@ on:
             NEW_RELIC_API_KEY:
                 required: false
         outputs:
-            dependency-names: 
+            dependency-names:
                 value: ${{ jobs.auto_approve_and_merge.outputs.dependency-names }}
-            previous-version: 
+            previous-version:
                 value: ${{ jobs.auto_approve_and_merge.outputs.previous-version }}
-            new-version: 
+            new-version:
                 value: ${{ jobs.auto_approve_and_merge.outputs.new-version }}
-            package-ecosystem: 
+            package-ecosystem:
                 value: ${{ jobs.auto_approve_and_merge.outputs.package-ecosystem }}
-            update-type: 
+            update-type:
                 value: ${{ jobs.auto_approve_and_merge.outputs.update-type }}
-            dependency-type: 
+            dependency-type:
                 value: ${{ jobs.auto_approve_and_merge.outputs.dependency-type }}
-            package-type: 
+            package-type:
                 value: ${{ jobs.auto_approve_and_merge.outputs.dependency-type }}
-            status: 
+            status:
                 value: ${{ jobs.auto_approve_and_merge.outputs.status }}
 
 # The commit SHA that triggered the workflow.
@@ -79,18 +79,17 @@ jobs:
               uses: dependabot/fetch-metadata@v1.3.3
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
-                
+
             - name: Get composer infos for ${{ steps.metadata.outputs.dependency-names }}
               if: steps.metadata.outputs.package-ecosystem == 'composer'
               id: package
               continue-on-error: true
               run: |
                 type=$( composer info ${{ steps.metadata.outputs.dependency-names }} --all --format json --no-ansi | jq '.type' )
-                echo "::set-output name=type::$type"
+                echo "type=$type" >> $GITHUB_OUTPUT
 
             - if: ${{ steps.package.conclusion == 'skipped'}}
-              run: |
-                echo "::set-output name=type::dependency"
+              run: echo "type=dependency" >> $GITHUB_OUTPUT
 
             # On approve et merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure
             - name: Enable auto-approve/merge for Dependabot PRs
@@ -98,17 +97,15 @@ jobs:
               if: steps.metadata.outputs.update-type != 'version-update:semver-major'
               continue-on-error: true
               run: |
-                echo "::set-output name=status::pending"
-                gh pr review --approve "$PR_URL" && echo "::set-output name=status::approved"
-                gh pr merge --auto --merge "$PR_URL" && echo "::set-output name=status::updated"
+                echo "status=pending" >> $GITHUB_OUTPUT
+                gh pr review --approve "$PR_URL" && echo "status=approved" >> $GITHUB_OUTPUT
+                gh pr merge --auto --merge "$PR_URL" && echo "status=updated" >> $GITHUB_OUTPUT
 
             - if: ${{ steps.merge.conclusion == 'skipped'}}
-              run: |
-                echo "::set-output name=status::skipped"
-            
+              run: echo "status=skipped" >> $GITHUB_OUTPUT
+
             - if: ${{ steps.merge.conclusion == 'failure'}}
-              run: |
-                echo "::set-output name=status::failed"
+              run: echo "status=failed" >> $GITHUB_OUTPUT
 
     notify:
         runs-on: ubuntu-latest
@@ -116,7 +113,7 @@ jobs:
         steps:
           - name: Notify
             id: notify
-            env: 
+            env:
                 NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
             if: ${{ env.NEW_RELIC_API_KEY != '' }}
             uses: fjogeleit/http-request-action@v1
