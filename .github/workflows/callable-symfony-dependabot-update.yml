@@ -32,7 +32,7 @@ on:
             dependency-type:
                 value: ${{ jobs.auto_approve_and_merge.outputs.dependency-type }}
             package-type:
-                value: ${{ jobs.auto_approve_and_merge.outputs.dependency-type }}
+                value: ${{ jobs.auto_approve_and_merge.outputs.package-type }}
             status:
                 value: ${{ jobs.auto_approve_and_merge.outputs.status }}
 
@@ -62,7 +62,7 @@ jobs:
           update-type: ${{ steps.metadata.outputs.update-type }}
           dependency-type: ${{ steps.metadata.outputs.dependency-type }}
           package-type: ${{ steps.package.outputs.type }}
-          merge: ${{ steps.merge.outputs.status }}
+          status: ${{ steps.merge.outputs.status }}
         steps:
             # On copie le repo
             - uses: actions/checkout@v3
@@ -173,7 +173,7 @@ jobs:
                         "packageEcosystem": "${{ needs.auto_approve_and_merge.outputs.package-ecosystem }}",
                         "updateType": "${{ needs.auto_approve_and_merge.outputs.update-type }}",
                         "dependencyType": "${{ needs.auto_approve_and_merge.outputs.dependency-type }}",
-                        "packageType": "${{ needs.auto_approve_and_merge.outputs.type }}",
+                        "packageType": "${{ needs.auto_approve_and_merge.outputs.package-type }}",
                         "status": "${{ needs.auto_approve_and_merge.outputs.status }}"
                       }
                     }]
