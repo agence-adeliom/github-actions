@@ -85,7 +85,7 @@ jobs:
               continue-on-error: true
               run: |
                 if [[ "${{ steps.metadata.outputs.package-ecosystem }}" = "composer" ]]; then
-                  echo "type=$( composer info ${{ steps.metadata.outputs.dependency-names }} --all --format json --no-ansi | jq '.type' )" >> $GITHUB_OUTPUT
+                  echo "type=$( composer info ${{ steps.metadata.outputs.dependency-names }} --all --format json --no-ansi | jq --raw-output '.type' )" >> $GITHUB_OUTPUT
                 else
                   echo "type=dependency" >> $GITHUB_OUTPUT
                 fi
