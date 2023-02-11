@@ -1,182 +1,187 @@
 name: Dependabot Symfony Update
 
 on:
-    workflow_call:
-        inputs:
-            php:
-                required: false
-                type: string
-                default: "8.1"
-            node:
-                required: false
-                type: string
-                default: "18"
-            webhook_endpoint:
-                required: false
-                type: string
-                default: "https://log-api.eu.newrelic.com/log/v1"
-        secrets:
-            NEW_RELIC_API_KEY:
-                required: false
-        outputs:
-            dependency-names:
-                value: ${{ jobs.auto_approve_and_merge.outputs.dependency-names }}
-            previous-version:
-                value: ${{ jobs.auto_approve_and_merge.outputs.previous-version }}
-            new-version:
-                value: ${{ jobs.auto_approve_and_merge.outputs.new-version }}
-            package-ecosystem:
-                value: ${{ jobs.auto_approve_and_merge.outputs.package-ecosystem }}
-            update-type:
-                value: ${{ jobs.auto_approve_and_merge.outputs.update-type }}
-            dependency-type:
-                value: ${{ jobs.auto_approve_and_merge.outputs.dependency-type }}
-            package-type:
-                value: ${{ jobs.auto_approve_and_merge.outputs.package-type }}
-            status:
-                value: ${{ jobs.auto_approve_and_merge.outputs.status }}
+  workflow_call:
+    inputs:
+      php:
+        required: false
+        type: string
+        default: "8.1"
+      node:
+        required: false
+        type: string
+        default: "18"
+      working-directory:
+        required: false
+        type: string
+        default: "."
+      webhook_endpoint:
+        required: false
+        type: string
+        default: "https://log-api.eu.newrelic.com/log/v1"
+    secrets:
+      NEW_RELIC_API_KEY:
+        required: false
+    outputs:
+      dependency-names:
+        value: ${{ jobs.auto_approve_and_merge.outputs.dependency-names }}
+      previous-version:
+        value: ${{ jobs.auto_approve_and_merge.outputs.previous-version }}
+      new-version:
+        value: ${{ jobs.auto_approve_and_merge.outputs.new-version }}
+      package-ecosystem:
+        value: ${{ jobs.auto_approve_and_merge.outputs.package-ecosystem }}
+      update-type:
+        value: ${{ jobs.auto_approve_and_merge.outputs.update-type }}
+      dependency-type:
+        value: ${{ jobs.auto_approve_and_merge.outputs.dependency-type }}
+      package-type:
+        value: ${{ jobs.auto_approve_and_merge.outputs.package-type }}
+      status:
+        value: ${{ jobs.auto_approve_and_merge.outputs.status }}
 
 # The commit SHA that triggered the workflow.
 # Pour éviter un double run sur le pull_target / pull_request_target
 concurrency:
-    group: ${{ github.sha }}
+  group: ${{ github.sha }}
 
 permissions:
-    pull-requests: write
-    issues: write
-    repository-projects: write
-    contents: write
+  pull-requests: write
+  issues: write
+  repository-projects: write
+  contents: write
 
 jobs:
-    auto_approve_and_merge:
-        runs-on: ubuntu-latest
-        if: ${{ github.actor == 'dependabot[bot]' }}
-        env:
-            PR_URL: ${{ github.event.pull_request.html_url }}
-            GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        outputs:
-          dependency-names: ${{ steps.metadata.outputs.dependency-names }}
-          previous-version: ${{ steps.metadata.outputs.previous-version }}
-          new-version: ${{ steps.metadata.outputs.new-version }}
-          package-ecosystem: ${{ steps.metadata.outputs.package-ecosystem }}
-          update-type: ${{ steps.metadata.outputs.update-type }}
-          dependency-type: ${{ steps.metadata.outputs.dependency-type }}
-          package-type: ${{ steps.package.outputs.type }}
-          status: ${{ steps.merge.outputs.status }}
-        steps:
-            # On copie le repo
-            - uses: actions/checkout@v3
+  auto_approve_and_merge:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    env:
+      PR_URL: ${{ github.event.pull_request.html_url }}
+      GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+    outputs:
+      dependency-names: ${{ steps.metadata.outputs.dependency-names }}
+      previous-version: ${{ steps.metadata.outputs.previous-version }}
+      new-version: ${{ steps.metadata.outputs.new-version }}
+      package-ecosystem: ${{ steps.metadata.outputs.package-ecosystem }}
+      update-type: ${{ steps.metadata.outputs.update-type }}
+      dependency-type: ${{ steps.metadata.outputs.dependency-type }}
+      package-type: ${{ steps.package.outputs.type }}
+      status: ${{ steps.merge.outputs.status }}
+    steps:
+      # On copie le repo
+      - uses: actions/checkout@v3
 
-            # On installe PHP
-            - name: Setup PHP
-              uses: shivammathur/setup-php@v2
-              with:
-                  php-version: ${{ inputs.php }}
+      # On installe PHP
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php }}
 
-            # On récupère les infos de la PR de Dependabot
-            - name: Fetch Dependabot metadata
-              id: metadata
-              uses: dependabot/fetch-metadata@v1.3.6
-              with:
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
+      # On récupère les infos de la PR de Dependabot
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v1.3.6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Get composer infos for ${{ steps.metadata.outputs.dependency-names }}
-              id: package
-              continue-on-error: true
-              run: |
-                if [[ "${{ steps.metadata.outputs.package-ecosystem }}" = "composer" ]]; then
-                  echo "type=$( composer info ${{ steps.metadata.outputs.dependency-names }} --all --format json --no-ansi | jq --raw-output '.type' )" >> $GITHUB_OUTPUT
-                else
-                  echo "type=dependency" >> $GITHUB_OUTPUT
-                fi
+      - name: Get composer infos for ${{ steps.metadata.outputs.dependency-names }}
+        id: package
+        working-directory: ${{ inputs.working-directory }}
+        continue-on-error: true
+        run: |
+          if [[ "${{ steps.metadata.outputs.package-ecosystem }}" = "composer" ]]; then
+            echo "type=$( composer info ${{ steps.metadata.outputs.dependency-names }} --all --format json --no-ansi | jq --raw-output '.type' )" >> $GITHUB_OUTPUT
+          else
+            echo "type=dependency" >> $GITHUB_OUTPUT
+          fi
 
-            - name: Notify
-              uses: fjogeleit/http-request-action@v1
-              if: steps.metadata.outputs.update-type != 'version-update:semver-major'
-              with:
-                url: ${{ inputs.webhook_endpoint }}
-                method: 'POST'
-                customHeaders: |
-                  {
-                    "Content-Type": "application/json",
-                    "Api-Key": "${{ secrets.NEW_RELIC_API_KEY }}"
+      - name: Notify
+        uses: fjogeleit/http-request-action@v1
+        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+        with:
+          url: ${{ inputs.webhook_endpoint }}
+          method: 'POST'
+          customHeaders: |
+            {
+              "Content-Type": "application/json",
+              "Api-Key": "${{ secrets.NEW_RELIC_API_KEY }}"
+            }
+          data: |
+            [{
+               "common": {
+                 "attributes": {
+                   "logtype": "dependabot",
+                   "repository": "${{ github.repository }}",
+                   "prUrl": "${{ github.event.pull_request.html_url }}",
+                   "projectType": "symfony"
+                 }
+               },
+               "logs": [{
+                  "message": "Bump ${{ steps.metadata.outputs.dependency-names }} from ${{ steps.metadata.outputs.previous-version }} to ${{ steps.metadata.outputs.new-version }}",
+                  "attributes": {
+                    "dependencyNames": "${{ steps.metadata.outputs.dependency-names }}",
+                    "previousVersion": "${{ steps.metadata.outputs.previous-version }}",
+                    "newVersion": "${{ steps.metadata.outputs.new-version }}",
+                    "packageEcosystem": "${{ steps.metadata.outputs.package-ecosystem }}",
+                    "updateType": "${{ steps.metadata.outputs.update-type }}",
+                    "dependencyType": "${{ steps.metadata.outputs.dependency-type }}",
+                    "packageType": "${{ steps.package.outputs.type }}",
+                    "status": "pending"
                   }
-                data: |
-                  [{
-                     "common": {
-                       "attributes": {
-                         "logtype": "dependabot",
-                         "repository": "${{ github.repository }}",
-                         "prUrl": "${{ github.event.pull_request.html_url }}",
-                         "projectType": "symfony"
-                       }
-                     },
-                     "logs": [{
-                        "message": "Bump ${{ steps.metadata.outputs.dependency-names }} from ${{ steps.metadata.outputs.previous-version }} to ${{ steps.metadata.outputs.new-version }}",
-                        "attributes": {
-                          "dependencyNames": "${{ steps.metadata.outputs.dependency-names }}",
-                          "previousVersion": "${{ steps.metadata.outputs.previous-version }}",
-                          "newVersion": "${{ steps.metadata.outputs.new-version }}",
-                          "packageEcosystem": "${{ steps.metadata.outputs.package-ecosystem }}",
-                          "updateType": "${{ steps.metadata.outputs.update-type }}",
-                          "dependencyType": "${{ steps.metadata.outputs.dependency-type }}",
-                          "packageType": "${{ steps.package.outputs.type }}",
-                          "status": "pending"
-                        }
-                      }]
-                  }]
-
-              # On approve et merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure
-            - name: Enable auto-approve/merge for Dependabot PRs
-              id: merge
-              continue-on-error: true
-              run: |
-                if [[ "${{ steps.metadata.outputs.update-type }}" != 'version-update:semver-major' ]]; then
-                  echo "status=pending" >> $GITHUB_OUTPUT
-                  gh pr review --approve "$PR_URL"
-                  echo "status=approved" >> $GITHUB_OUTPUT
-                  gh pr merge --auto --merge "$PR_URL"
-                  echo "status=updated" >> $GITHUB_OUTPUT
-                else
-                  echo "status=skipped" >> $GITHUB_OUTPUT
-                fi
-
-    notify:
-        runs-on: ubuntu-latest
-        needs: [auto_approve_and_merge]
-        steps:
-          - name: Notify
-            id: notify
-            uses: fjogeleit/http-request-action@v1
-            with:
-              url: ${{ inputs.webhook_endpoint }}
-              method: 'POST'
-              customHeaders: |
-                {
-                  "Content-Type": "application/json",
-                  "Api-Key": "${{ secrets.NEW_RELIC_API_KEY }}"
-                }
-              data: |
-                [{
-                   "common": {
-                     "attributes": {
-                       "logtype": "dependabot",
-                       "repository": "${{ github.repository }}",
-                       "prUrl": "${{ github.event.pull_request.html_url }}",
-                       "projectType": "symfony"
-                     }
-                   },
-                   "logs": [{
-                      "message": "Bump ${{ needs.auto_approve_and_merge.outputs.dependency-names }} from ${{ needs.auto_approve_and_merge.outputs.previous-version }} to ${{ needs.auto_approve_and_merge.outputs.new-version }}",
-                      "attributes": {
-                        "dependencyNames": "${{ needs.auto_approve_and_merge.outputs.dependency-names }}",
-                        "previousVersion": "${{ needs.auto_approve_and_merge.outputs.previous-version }}",
-                        "newVersion": "${{ needs.auto_approve_and_merge.outputs.new-version }}",
-                        "packageEcosystem": "${{ needs.auto_approve_and_merge.outputs.package-ecosystem }}",
-                        "updateType": "${{ needs.auto_approve_and_merge.outputs.update-type }}",
-                        "dependencyType": "${{ needs.auto_approve_and_merge.outputs.dependency-type }}",
-                        "packageType": "${{ needs.auto_approve_and_merge.outputs.package-type }}",
-                        "status": "${{ needs.auto_approve_and_merge.outputs.status }}"
-                      }
-                    }]
                 }]
+            }]
+
+        # On approve et merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure
+      - name: Enable auto-approve/merge for Dependabot PRs
+        id: merge
+        continue-on-error: true
+        run: |
+          if [[ "${{ steps.metadata.outputs.update-type }}" != 'version-update:semver-major' ]]; then
+            echo "status=pending" >> $GITHUB_OUTPUT
+            gh pr review --approve "$PR_URL"
+            echo "status=approved" >> $GITHUB_OUTPUT
+            gh pr merge --auto --merge "$PR_URL"
+            echo "status=updated" >> $GITHUB_OUTPUT
+          else
+            echo "status=skipped" >> $GITHUB_OUTPUT
+          fi
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [ auto_approve_and_merge ]
+    steps:
+      - name: Notify
+        id: notify
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: ${{ inputs.webhook_endpoint }}
+          method: 'POST'
+          customHeaders: |
+            {
+              "Content-Type": "application/json",
+              "Api-Key": "${{ secrets.NEW_RELIC_API_KEY }}"
+            }
+          data: |
+            [{
+               "common": {
+                 "attributes": {
+                   "logtype": "dependabot",
+                   "repository": "${{ github.repository }}",
+                   "prUrl": "${{ github.event.pull_request.html_url }}",
+                   "projectType": "symfony"
+                 }
+               },
+               "logs": [{
+                  "message": "Bump ${{ needs.auto_approve_and_merge.outputs.dependency-names }} from ${{ needs.auto_approve_and_merge.outputs.previous-version }} to ${{ needs.auto_approve_and_merge.outputs.new-version }}",
+                  "attributes": {
+                    "dependencyNames": "${{ needs.auto_approve_and_merge.outputs.dependency-names }}",
+                    "previousVersion": "${{ needs.auto_approve_and_merge.outputs.previous-version }}",
+                    "newVersion": "${{ needs.auto_approve_and_merge.outputs.new-version }}",
+                    "packageEcosystem": "${{ needs.auto_approve_and_merge.outputs.package-ecosystem }}",
+                    "updateType": "${{ needs.auto_approve_and_merge.outputs.update-type }}",
+                    "dependencyType": "${{ needs.auto_approve_and_merge.outputs.dependency-type }}",
+                    "packageType": "${{ needs.auto_approve_and_merge.outputs.package-type }}",
+                    "status": "${{ needs.auto_approve_and_merge.outputs.status }}"
+                  }
+                }]
+            }]
