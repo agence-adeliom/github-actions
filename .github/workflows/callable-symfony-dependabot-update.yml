@@ -19,6 +19,11 @@ on:
         required: false
         type: string
         default: "https://log-api.eu.newrelic.com/log/v1"
+      merge_type:
+        description: "Must be one of 'merge', 'rebase' or 'squash'. Default: 'merge'"
+        required: false
+        type: string
+        default: "merge"
     secrets:
       NEW_RELIC_API_KEY:
         required: false
@@ -132,7 +137,7 @@ jobs:
             }]
 
         # On approve et merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure
-      - name: Enable auto-approve/merge for Dependabot PRs
+      - name: Enable auto-approve/${{ inputs.merge_type }} for Dependabot PRs
         id: merge
         continue-on-error: true
         run: |
@@ -140,7 +145,7 @@ jobs:
             echo "status=pending" >> $GITHUB_OUTPUT
             gh pr review --approve "$PR_URL"
             echo "status=approved" >> $GITHUB_OUTPUT
-            gh pr merge --auto --merge "$PR_URL"
+            gh pr merge --auto --${{ inputs.merge_type }} "$PR_URL"
             echo "status=updated" >> $GITHUB_OUTPUT
           else
             echo "status=skipped" >> $GITHUB_OUTPUT
