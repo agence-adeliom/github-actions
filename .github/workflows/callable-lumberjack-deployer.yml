@@ -42,6 +42,7 @@ jobs:
   deployer:
     name: 🎉 Setup Deployer
     runs-on: ["self-hosted", "ubuntu"]
+    needs: ["install"]
     steps:
       - name: Définition du host
         if: ${{ inputs.BRANCH == 'main' || inputs.BRANCH == 'master' }}

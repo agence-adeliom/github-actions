@@ -28,5 +28,4 @@ jobs:
             node: ${{ github.event.inputs.NODE }}
         secrets:
             PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-            PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
             DEPLOYER_INVENTORY: ${{ secrets.DEPLOYER_INVENTORY }}
