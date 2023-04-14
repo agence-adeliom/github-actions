@@ -29,8 +29,14 @@ on:
         required: true
 
 jobs:
+  install:
+    uses: agence-adeliom/github-actions/.github/workflows/callable-lumberjack-install.yml@main
+    with:
+      theme: ${{ env.THEME }}
+      php: ${{ env.PHP_VERSION }}
+      node: ${{ env.NODE_VERSION }}
   deployer:
-    name: 🎉 Deployer
+    name: 🎉 Setup Deployer
     runs-on: ["self-hosted", "ubuntu"]
     steps:
       - name: Définition du host
@@ -52,15 +58,9 @@ jobs:
           DEPLOYER_INVENTORY: ${{ secrets.DEPLOYER_INVENTORY }}
         run: |
           echo $DEPLOYER_INVENTORY | base64 --decode > inventory.yaml
-  install:
-    uses: agence-adeliom/github-actions/.github/workflows/callable-lumberjack-install.yml@main
-    with:
-      theme: ${{ env.THEME }}
-      php: ${{ env.PHP_VERSION }}
-      node: ${{ env.NODE_VERSION }}
-  deploiement:
-    uses: deployphp/action@v1
-    with:
-      deployer-version: ${{ inputs.deployer }}
-      private-key: ${{ secrets.PRIVATE_KEY }}
-      dep: deploy --branch=${{ inputs.BRANCH }} -n ${{ env.HOST }}
+      - name: Deploy
+        uses: deployphp/action@v1
+        with:
+          deployer-version: ${{ inputs.deployer }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          dep: deploy --branch=${{ inputs.BRANCH }} -n ${{ env.HOST }}
