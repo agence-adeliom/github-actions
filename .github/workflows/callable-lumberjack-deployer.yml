@@ -32,6 +32,8 @@ on:
       ACF_PRO_KEY:
         required: true
 
+concurrency: production_environment
+
 jobs:
   install:
     uses: agence-adeliom/github-actions/.github/workflows/callable-lumberjack-install.yml@main
@@ -44,6 +46,26 @@ jobs:
     runs-on: ["self-hosted", "ubuntu"]
     needs: ["install"]
     steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+            php-version: ${{ inputs.php }}
+        env:
+          runner: self-hosted
+
+      - uses: actions/cache@v3
+        with:
+            path: ${{ steps.composer-cache.outputs.dir }}
+            key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+            restore-keys: |
+                ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+
+      - name: Check Composer lock file is up to date
+        run: composer validate --no-check-all
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+
       - name: Définition du host
         if: ${{ inputs.BRANCH == 'main' || inputs.BRANCH == 'master' }}
         run: echo "HOST=production" >> $GITHUB_ENV
