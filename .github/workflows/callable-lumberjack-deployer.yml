@@ -18,6 +18,10 @@ on:
         required: false
         type: string
         default: "7.0.2"
+      theme:
+        required: false
+        type: string
+        default: "adeliom"
     secrets:
       PRIVATE_KEY:
         required: true
@@ -32,9 +36,9 @@ jobs:
   install:
     uses: agence-adeliom/github-actions/.github/workflows/callable-lumberjack-install.yml@main
     with:
-      theme: ${{ env.THEME }}
-      php: ${{ env.PHP_VERSION }}
-      node: ${{ env.NODE_VERSION }}
+      theme: ${{ inputs.theme }}
+      php: ${{ inputs.php }}
+      node: ${{ inputs.node }}
   deployer:
     name: 🎉 Setup Deployer
     runs-on: ["self-hosted", "ubuntu"]
