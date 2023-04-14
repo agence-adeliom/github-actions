@@ -53,6 +53,10 @@ jobs:
         env:
           runner: self-hosted
 
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
       - uses: actions/cache@v3
         with:
             path: ${{ steps.composer-cache.outputs.dir }}
