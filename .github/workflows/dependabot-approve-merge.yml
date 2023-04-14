@@ -15,7 +15,7 @@ permissions:
 
 jobs:
     auto_approve_and_merge:
-        runs-on: ubuntu-latest
+        runs-on: ["self-hosted", "ubuntu"]
         outputs:
             canMerge: ${{ steps.canMerge.outputs.canMerge }}
         if: ${{ github.actor == 'dependabot[bot]' }}

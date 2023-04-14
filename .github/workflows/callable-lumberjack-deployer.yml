@@ -31,7 +31,7 @@ on:
 jobs:
   deployer:
     name: 🎉 Deployer
-    runs-on: ubuntu-latest
+    runs-on: ["self-hosted", "ubuntu"]
     steps:
       - name: Définition du host
         if: ${{ inputs.BRANCH == 'main' || inputs.BRANCH == 'master' }}

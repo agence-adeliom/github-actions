@@ -24,7 +24,7 @@ concurrency: adeliom_deploy
 jobs:
     deploy:
         name: Déploiement
-        runs-on: ubuntu-latest
+        runs-on: ["self-hosted", "ubuntu"]
         steps:
             - name: Définition de la variable HOST pour env production
               if: ${{ ((inputs.branch && inputs.branch == 'prod') || github.ref_name == 'prod') || ((inputs.branch && inputs.branch == 'master') || github.ref_name == 'master') }}

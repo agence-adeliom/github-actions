@@ -17,7 +17,7 @@ concurrency: deployer_deploy
 jobs:
     deploy:
         name: Déploiement
-        runs-on: ubuntu-latest
+        runs-on: ["self-hosted", "ubuntu"]
         steps:
             - name: Définition de la variable HOST pour env production
               if: ${{ github.ref_name == 'prod' || github.ref_name == 'master' }}

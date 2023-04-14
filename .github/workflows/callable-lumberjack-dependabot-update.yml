@@ -53,7 +53,7 @@ permissions:
 
 jobs:
   auto_approve_and_merge:
-    runs-on: ubuntu-latest
+    runs-on: ["self-hosted", "ubuntu"]
     # Et que la PR vient de Dependabot
     if: ${{ github.actor == 'dependabot[bot]' }}
     env:
@@ -77,6 +77,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ inputs.php }}
+        env:
+          runner: self-hosted
 
       # On récupère les infos de la PR de Dependabot
       - name: Fetch Dependabot metadata
@@ -163,7 +165,7 @@ jobs:
           fi
 
   notify:
-    runs-on: ubuntu-latest
+    runs-on: ["self-hosted", "ubuntu"]
     needs: [ auto_approve_and_merge ]
     steps:
       - name: Notify

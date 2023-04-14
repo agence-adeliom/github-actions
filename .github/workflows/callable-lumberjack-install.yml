@@ -23,7 +23,7 @@ on:
 
 jobs:
     build:
-        runs-on: ubuntu-latest
+        runs-on: ["self-hosted", "ubuntu"]
         steps:
             # On copie le repo
             - uses: actions/checkout@v3
@@ -33,6 +33,8 @@ jobs:
               uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ inputs.php }}
+              env:
+                runner: self-hosted
 
             # On installe les plugins PRO
             - name: Install PRO WP plugins with Hack for OVH

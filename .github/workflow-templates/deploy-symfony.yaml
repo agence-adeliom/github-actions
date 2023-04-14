@@ -21,7 +21,7 @@ concurrency: adeliom_deploy
 jobs:
     deploy:
         name: Déploiement
-        runs-on: ubuntu-latest
+        runs-on: ["self-hosted", "ubuntu"]
         steps:
             - name: Définition de la variable HOST pour env production
               if: ${{ github.ref_name == 'prod' }}
@@ -46,6 +46,8 @@ jobs:
               with:
                   php-version: ${{ env.php }}
                   coverage: xdebug
+              env:
+                runner: self-hosted
 
             - name: Validation du composer.lock
               run: composer validate --no-check-all
