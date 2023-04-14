@@ -26,6 +26,32 @@ jobs:
         name: Déploiement
         runs-on: ["self-hosted", "ubuntu"]
         steps:
+            -   uses: actions/checkout@v3
+
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: ${{ inputs.php }}
+                env:
+                    runner: self-hosted
+
+            -   name: Get Composer Cache Directory
+                id: composer-cache
+                run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+            -   uses: actions/cache@v3
+                with:
+                    path: ${{ steps.composer-cache.outputs.dir }}
+                    key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+                    restore-keys: |
+                        ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+
+            -   name: Check Composer lock file is up to date
+                run: composer validate --no-check-all
+
+            -   name: Install Composer dependencies
+                run: composer install --no-progress --prefer-dist --optimize-autoloader
+
             - name: Définition de la variable HOST pour env production
               if: ${{ ((inputs.branch && inputs.branch == 'prod') || github.ref_name == 'prod') || ((inputs.branch && inputs.branch == 'master') || github.ref_name == 'master') }}
               run: echo "HOST=production" >> $GITHUB_ENV
