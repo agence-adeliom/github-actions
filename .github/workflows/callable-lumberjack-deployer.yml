@@ -22,6 +22,10 @@ on:
         required: false
         type: string
         default: "adeliom"
+      themes_path:
+        required: false
+        type: string
+        default: "web/app/themes"
     secrets:
       PRIVATE_KEY:
         required: true

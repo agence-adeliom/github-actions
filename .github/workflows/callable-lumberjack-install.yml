@@ -15,6 +15,10 @@ on:
                 required: false
                 type: string
                 default: "18"
+            themes_path:
+                required: false
+                type: string
+                default: "web/app/themes"
         secrets:
             GRAVITYFORMS_KEY:
                 required: false
@@ -83,15 +87,15 @@ jobs:
 
             # On install les dependances Node
             - name: Install NPM dependencies
-              working-directory: ./web/app/themes/${{ inputs.theme }}
+              working-directory: ./${{ inputs.themes_path }}/${{ inputs.theme }}
               run: npm ci
 
             # On joue les tests front
             - name: Run NPM test suite
-              working-directory: ./web/app/themes/${{ inputs.theme }}
+              working-directory: ./${{ inputs.theme }}/${{ inputs.theme }}
               run: npm run test --if-present
 
             # On build le front
             - name: Try to build theme's assets
-              working-directory: ./web/app/themes/${{ inputs.theme }}
+              working-directory: ./${{ inputs.theme }}/${{ inputs.theme }}
               run: npm run build --if-present || npm run build:production --if-present
