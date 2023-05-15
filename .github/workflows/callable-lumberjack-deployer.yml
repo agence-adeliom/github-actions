@@ -41,6 +41,7 @@ jobs:
       theme: ${{ inputs.theme }}
       php: ${{ inputs.php }}
       node: ${{ inputs.node }}
+      themes_path: ${{ inputs.themes_path }}
   deployer:
     name: 🎉 Setup Deployer
     runs-on: ["self-hosted", "ubuntu"]
