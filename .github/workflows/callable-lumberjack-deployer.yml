@@ -27,10 +27,6 @@ on:
         required: true
       DEPLOYER_INVENTORY:
         required: true
-      GRAVITYFORMS_KEY:
-        required: true
-      ACF_PRO_KEY:
-        required: true
 
 concurrency: production_environment
 
