@@ -79,11 +79,11 @@ jobs:
               run: composer install --no-progress --prefer-dist --optimize-autoloader
 
             # On install NodeJS
-            - uses: actions/setup-node@v3
-              with:
-                  node-version: ${{ inputs.node }}
-                  cache: npm
-                  cache-dependency-path: '**/package-lock.json'
+#            - uses: actions/setup-node@v3
+#              with:
+#                  node-version: ${{ inputs.node }}
+#                  cache: npm
+#                  cache-dependency-path: '**/package-lock.json'
 
 #            # On install les dependances Node
 #            - name: Install NPM dependencies
