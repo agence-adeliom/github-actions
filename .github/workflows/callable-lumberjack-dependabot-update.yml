@@ -96,6 +96,7 @@ jobs:
           KEY: ${{ secrets.GRAVITYFORMS_KEY }}
         if: "${{ env.KEY != '' && steps.metadata.outputs.package-ecosystem == 'composer'}}"
         working-directory: ${{ inputs.working-directory }}
+        continue-on-error: true
         run: composer config http-basic.gf-composer-proxy.arnaud-ritti.workers.dev licensekey ${{ env.KEY }}
 
       - name: Composer auth for ACF Pro
@@ -103,6 +104,15 @@ jobs:
           KEY: ${{ secrets.ACF_PRO_KEY }}
         if: "${{ env.KEY != '' && steps.metadata.outputs.package-ecosystem == 'composer'}}"
         working-directory: ${{ inputs.working-directory }}
+        continue-on-error: true
+        run: composer config connect.advancedcustomfields.com ${{ env.KEY }} https://${{ github.event.repository.name }}.local
+
+      - name: Composer auth for ACF Pro - (LEGACY)
+        env:
+          KEY: ${{ secrets.ACF_PRO_KEY }}
+        if: "${{ env.KEY != '' && steps.metadata.outputs.package-ecosystem == 'composer'}}"
+        working-directory: ${{ inputs.working-directory }}
+        continue-on-error: true
         run: composer config http-basic.auth-acf-composer-proxy.pivvenit.net licensekey ${{ env.KEY }}
 
 

@@ -47,6 +47,7 @@ jobs:
             # On installe les plugins PRO
             - name: Install PRO WP plugins with Hack for OVH
               working-directory: ${{ inputs.working-directory }}
+              continue-on-error: true
               run: |
                 if test -f "update_deps.php"; then
                   php update_deps.php
@@ -57,6 +58,7 @@ jobs:
                 KEY: ${{ secrets.GRAVITYFORMS_KEY }}
               if: "${{ env.KEY != '' }}"
               working-directory: ${{ inputs.working-directory }}
+              continue-on-error: true
               run: composer config http-basic.gf-composer-proxy.arnaud-ritti.workers.dev licensekey ${{ env.KEY }}
 
             - name: Composer auth for ACF Pro
@@ -64,6 +66,15 @@ jobs:
                 KEY: ${{ secrets.ACF_PRO_KEY }}
               if: "${{ env.KEY != '' }}"
               working-directory: ${{ inputs.working-directory }}
+              continue-on-error: true
+              run: composer config connect.advancedcustomfields.com ${{ env.KEY }} https://${{ github.event.repository.name }}.local
+
+            - name: Composer auth for ACF Pro - (LEGACY)
+              env:
+                KEY: ${{ secrets.ACF_PRO_KEY }}
+              if: "${{ env.KEY != '' }}"
+              working-directory: ${{ inputs.working-directory }}
+              continue-on-error: true
               run: composer config http-basic.auth-acf-composer-proxy.pivvenit.net licensekey ${{ env.KEY }}
 
             # On créé le cache de composer pour prendre moins de temps à build
