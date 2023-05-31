@@ -46,6 +46,7 @@ jobs:
 
             # On installe les plugins PRO
             - name: Install PRO WP plugins with Hack for OVH
+              working-directory: ${{ inputs.working-directory }}
               run: |
                 if test -f "update_deps.php"; then
                   php update_deps.php
