@@ -105,7 +105,7 @@ jobs:
         if: "${{ env.KEY != '' && steps.metadata.outputs.package-ecosystem == 'composer'}}"
         working-directory: ${{ inputs.working-directory }}
         continue-on-error: true
-        run: composer config connect.advancedcustomfields.com ${{ env.KEY }} https://${{ github.event.repository.name }}.local
+        run: composer config http-basic.connect.advancedcustomfields.com ${{ env.KEY }} https://${{ github.event.repository.name }}.local
 
       - name: Composer auth for ACF Pro - (LEGACY)
         env:
