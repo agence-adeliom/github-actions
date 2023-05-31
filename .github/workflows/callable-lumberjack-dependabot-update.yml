@@ -15,6 +15,10 @@ on:
         required: false
         type: string
         default: "https://log-api.eu.newrelic.com/log/v1"
+      working-directory:
+        required: false
+        type: string
+        default: "."
     secrets:
       GRAVITYFORMS_KEY:
         required: false
@@ -91,17 +95,20 @@ jobs:
         env:
           KEY: ${{ secrets.GRAVITYFORMS_KEY }}
         if: "${{ env.KEY != '' && steps.metadata.outputs.package-ecosystem == 'composer'}}"
+        working-directory: ${{ inputs.working-directory }}
         run: composer config http-basic.gf-composer-proxy.arnaud-ritti.workers.dev licensekey ${{ env.KEY }}
 
       - name: Composer auth for ACF Pro
         env:
           KEY: ${{ secrets.ACF_PRO_KEY }}
         if: "${{ env.KEY != '' && steps.metadata.outputs.package-ecosystem == 'composer'}}"
+        working-directory: ${{ inputs.working-directory }}
         run: composer config http-basic.auth-acf-composer-proxy.pivvenit.net licensekey ${{ env.KEY }}
 
 
       - name: Get composer infos for ${{ steps.metadata.outputs.dependency-names }}
         id: package
+        working-directory: ${{ inputs.working-directory }}
         continue-on-error: true
         run: |
           if [[ "${{ steps.metadata.outputs.package-ecosystem }}" = "composer" ]]; then
