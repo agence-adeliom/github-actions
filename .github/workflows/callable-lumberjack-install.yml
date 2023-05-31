@@ -67,7 +67,7 @@ jobs:
               if: "${{ env.KEY != '' }}"
               working-directory: ${{ inputs.working-directory }}
               continue-on-error: true
-              run: composer config http-basic.connect.advancedcustomfields.com ${{ env.KEY }} https://${{ github.event.repository.name }}.local
+              run: composer config http-basic.connect.advancedcustomfields.com ${{ env.KEY }} https://adeliom.ci.local
 
             - name: Composer auth for ACF Pro - (LEGACY)
               env:
