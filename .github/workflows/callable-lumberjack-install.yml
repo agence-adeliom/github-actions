@@ -103,10 +103,10 @@ jobs:
 
             # On joue les tests front
             - name: Run NPM test suite
-              working-directory: ${{ inputs.working-directory }}/${{ inputs.theme }}/${{ inputs.theme }}
+              working-directory: ${{ inputs.working-directory }}/${{ inputs.themes_path }}/${{ inputs.theme }}
               run: npm run test --if-present
 
             # On build le front
             - name: Try to build theme's assets
-              working-directory: ${{ inputs.working-directory }}/${{ inputs.theme }}/${{ inputs.theme }}
+              working-directory: ${{ inputs.working-directory }}/${{ inputs.themes_path }}/${{ inputs.theme }}
               run: npm run build --if-present || npm run build:production --if-present
