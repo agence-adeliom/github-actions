@@ -2,6 +2,11 @@ name: Approve and Merge Dependabot PR
 
 on:
     workflow_call:
+        rebase:
+            required: false
+            type: boolean
+            default: false
+            description: "Rebaser la PR plutôt que la merger"
         outputs:
             canMerge:
                 description: "Est-ce que la PR peut être mergée ?"
@@ -31,7 +36,8 @@ jobs:
             - name: Enable auto-merge for minor/security Dependabot PRs
               id: prMerge
               if: ${{ steps.metadata.outputs.update-type != 'version-update:semver-major' }}
-              run: gh pr merge --auto --merge "$PR_URL"
+              run: |
+                  gh pr merge --auto ${{ inputs.rebase ? "--rebase" : "--merge" }} "$PR_URL"
 
             - name: Output can merge ?
               id: canMerge
