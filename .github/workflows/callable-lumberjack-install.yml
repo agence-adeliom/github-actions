@@ -23,6 +23,10 @@ on:
                 required: false
                 type: string
                 default: "."
+            use-node:
+                required: false
+                type: boolean
+                default: true
         secrets:
             GRAVITYFORMS_KEY:
                 required: false
@@ -102,6 +106,7 @@ jobs:
 
             # On install NodeJS
             - uses: actions/setup-node@v3
+              if: ${{ inputs.use-node }}
               with:
                   node-version: ${{ inputs.node }}
                   cache: npm
@@ -109,15 +114,18 @@ jobs:
 
             # On install les dependances Node
             - name: Install NPM dependencies
+              if: ${{ inputs.use-node }}
               working-directory: ${{ inputs.working-directory }}/${{ inputs.themes_path }}/${{ inputs.theme }}
               run: npm ci
 
             # On joue les tests front
             - name: Run NPM test suite
+              if: ${{ inputs.use-node }}
               working-directory: ${{ inputs.working-directory }}/${{ inputs.themes_path }}/${{ inputs.theme }}
               run: npm run test --if-present
 
             # On build le front
             - name: Try to build theme's assets
+              if: ${{ inputs.use-node }}
               working-directory: ${{ inputs.working-directory }}/${{ inputs.themes_path }}/${{ inputs.theme }}
               run: npm run build --if-present || npm run build:production --if-present
