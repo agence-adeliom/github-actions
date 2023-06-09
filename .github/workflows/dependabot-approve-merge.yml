@@ -15,31 +15,4 @@ permissions:
 
 jobs:
     auto_approve_and_merge:
-        runs-on: "ubuntu-latest"
-        outputs:
-            canMerge: ${{ steps.canMerge.outputs.canMerge }}
-        if: ${{ github.actor == 'dependabot[bot]' }}
-        env:
-            PR_URL: ${{github.event.pull_request.html_url}}
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        steps:
-            - uses: actions/checkout@v3
-
-            - name: Fetch Dependabot metadata
-              id: metadata
-              uses: dependabot/fetch-metadata@v1.3.3
-              with:
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Enable auto-approve for Dependabot PRs
-              run: gh pr review --approve "$PR_URL"
-
-            - name: Enable auto-merge for minor/security Dependabot PRs
-              id: prMerge
-              if: ${{ steps.metadata.outputs.update-type != 'version-update:semver-major' }}
-              run: gh pr merge --auto --merge "$PR_URL"
-
-            - name: Output can merge ?
-              id: canMerge
-              run: echo "canMerge=${{steps.prMerge.outcome}}" >> $GITHUB_OUTPUT
-              shell: bash
+        uses: agence-adeliom/github-actions/.github/workflows/callable-dependabot-approve-merge.yml@main

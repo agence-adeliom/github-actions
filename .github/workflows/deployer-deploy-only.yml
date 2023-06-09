@@ -16,29 +16,4 @@ concurrency: deployer_deploy
 
 jobs:
     deploy:
-        name: Déploiement
-        runs-on: ["self-hosted", "ubuntu"]
-        steps:
-            - name: Définition de la variable HOST pour env production
-              if: ${{ github.ref_name == 'prod' || github.ref_name == 'master' }}
-              run: echo "HOST=production" >> $GITHUB_ENV
-              shell: bash
-
-            - name: Définition de la variable HOST pour env staging
-              if: ${{ github.ref_name == 'recette' || github.ref_name == 'develop' }}
-              run: echo "HOST=staging" >> $GITHUB_ENV
-              shell: bash
-
-            - uses: actions/checkout@v3
-
-            - name: Retrieve the secret inventory and decode it to a file
-              env:
-                  DEPLOYER_INVENTORY: ${{ secrets.DEPLOYER_INVENTORY }}
-              run: |
-                  echo $DEPLOYER_INVENTORY | base64 --decode > inventory.yaml
-
-            - name: Deploy branch ${{ inputs.branch || github.ref_name }} to ${{ env.HOST }}
-              uses: deployphp/action@v1
-              with:
-                  private-key: ${{ secrets.PRIVATE_KEY }}
-                  dep: deploy --branch=${{ inputs.branch || github.ref_name }} -n ${{ env.HOST }}
+        uses: agence-adeliom/github-actions/.github/workflows/callable-deployer-deploy-only.yml@main
