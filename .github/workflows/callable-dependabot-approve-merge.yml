@@ -37,7 +37,7 @@ jobs:
               id: prMerge
               if: ${{ steps.metadata.outputs.update-type != 'version-update:semver-major' }}
               run: |
-                  gh pr merge --auto ${{ inputs.rebase ? "--rebase" : "--merge" }} "$PR_URL"
+                  gh pr merge --auto ${{ inputs.rebase && "--rebase" || "--merge" }} "$PR_URL"
 
             - name: Output can merge ?
               id: canMerge

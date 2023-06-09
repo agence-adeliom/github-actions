@@ -180,7 +180,7 @@ jobs:
             echo "status=pending" >> $GITHUB_OUTPUT
             gh pr review --approve "$PR_URL"
             echo "status=approved" >> $GITHUB_OUTPUT
-            gh pr merge --auto ${{ inputs.rebase ? "--rebase" : "--merge" }} "$PR_URL"
+            gh pr merge --auto ${{ inputs.rebase && "--rebase" || "--merge" }} "$PR_URL"
             echo "status=updated" >> $GITHUB_OUTPUT
           else
             echo "status=skipped" >> $GITHUB_OUTPUT
