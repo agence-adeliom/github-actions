@@ -33,11 +33,21 @@ jobs:
             - name: Enable auto-approve for Dependabot PRs
               run: gh pr review --approve "$PR_URL"
 
+            - name: Définition de la variable REBASE
+              if: ${{ ! inputs.rebase }}
+              run: echo 'MERGE="--merge"' >> $GITHUB_ENV
+              shell: bash
+
+            - name: Définition de la variable REBASE
+              if: ${{ inputs.rebase }}
+              run: echo 'MERGE="--rebase"' >> $GITHUB_ENV
+              shell: bash
+
             - name: Enable auto-merge for minor/security Dependabot PRs
               id: prMerge
               if: ${{ steps.metadata.outputs.update-type != 'version-update:semver-major' }}
               run: |
-                  gh pr merge --auto ${{ inputs.rebase && "--rebase" || "--merge" }} "$PR_URL"
+                  gh pr merge --auto $MERGE "$PR_URL"
 
             - name: Output can merge ?
               id: canMerge

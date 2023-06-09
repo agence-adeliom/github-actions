@@ -168,6 +168,16 @@ jobs:
                 }]
             }]
 
+      - name: Définition de la variable REBASE
+        if: ${{ ! inputs.rebase }}
+        run: echo 'MERGE="--merge"' >> $GITHUB_ENV
+        shell: bash
+
+      - name: Définition de la variable REBASE
+        if: ${{ inputs.rebase }}
+        run: echo 'MERGE="--rebase"' >> $GITHUB_ENV
+        shell: bash
+
       # On approve et merge la PR de Dependabot seulement si la version de la lib maj n'est pas majeure sauf pour les plugin Wordpress
       - name: Enable auto-approve/merge for Dependabot PRs
         id: merge
@@ -180,7 +190,7 @@ jobs:
             echo "status=pending" >> $GITHUB_OUTPUT
             gh pr review --approve "$PR_URL"
             echo "status=approved" >> $GITHUB_OUTPUT
-            gh pr merge --auto ${{ inputs.rebase && "--rebase" || "--merge" }} "$PR_URL"
+            gh pr merge --auto $MERGE "$PR_URL"
             echo "status=updated" >> $GITHUB_OUTPUT
           else
             echo "status=skipped" >> $GITHUB_OUTPUT
