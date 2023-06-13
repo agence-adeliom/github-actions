@@ -47,3 +47,50 @@ branch définie
 - `lumberjack-deployer-manual` - Ajoute un workflow de déployment qui peut être
   déclenché à la mani depuis l'interface de github.com
 
+## Utilisation avec WordPress
+
+### Liste des paramètres
+
+#### `theme`
+type: `string`
+required: `false`
+default: `"adeliom"`  
+Nom du dossier de thème WordPress utilisé ex: "twentytwelve"  
+#### `php`
+type: `string`
+required: `false`
+default: `"8.1"`  
+Version de PHP utilisé sur le thème
+#### `node`
+type: `string`
+required: `false`
+default: `"18"`  
+Version de Node utilisée pour compiler les assets dans le thème
+#### `themes_path`
+type: `string`
+required: `false`
+default: `"web/app/themes"`  
+Chemin vers le thème si différent d'une architecture lumberjack.
+#### `working-directory`
+type: `string`
+required: `false`
+default: `"."`  
+Chemin vers le dossier ou sera configuré les plugins payant
+#### `use-node`
+type: `boolean`
+required: `false`
+default: `true`  
+Sur les anciens projets qui n'utilisent pas nodeJS, permet de contourner certains steps de compilation obligatoire en temps normal
+
+## Utilisation des actions dependabot
+
+### Liste des paramètres
+
+#### `merge_type`
+type: `string`
+required: `false`
+default: `"merge"`  
+Permet de savoir quelle stratégie de fusion utiliser. 
+`merge` va créer un commit de merge en plus du/des commit(s) de la PR.
+`rebase` va rebaser le(s) commit(s) sur la branche, comme si la PR était venu s'appliquer directement à la suite du denier commit de la branch par défaut
+`squash` va regrouper le(s) commit(s) de la PR en un seul et rebaser ce commit à la suite du denier commit de la branch par défaut.
