@@ -45,6 +45,7 @@ jobs:
               uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ inputs.php }}
+                  extensions: gd
               env:
                 runner: self-hosted
 
