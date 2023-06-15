@@ -121,6 +121,21 @@ jobs:
         continue-on-error: true
         run: composer config http-basic.auth-acf-composer-proxy.pivvenit.net licensekey ${{ env.KEY }}
 
+      - name: Add GRAVITYFORMS_KEY to env
+        env:
+          KEY: ${{ secrets.GRAVITYFORMS_KEY }}
+        if: "${{ env.KEY != '' }}"
+        working-directory: ${{ inputs.working-directory }}
+        continue-on-error: true
+        run: echo "GRAVITY_FORMS_KEY=${{ env.KEY }}" >> .env
+
+      - name: Add ACF_PRO_KEY to env
+        env:
+          KEY: ${{ secrets.ACF_PRO_KEY }}
+        if: "${{ env.KEY != '' }}"
+        working-directory: ${{ inputs.working-directory }}
+        continue-on-error: true
+        run: echo "ACF_PRO_KEY=${{ env.KEY }}" >> .env
 
       - name: Get composer infos for ${{ steps.metadata.outputs.dependency-names }}
         id: package
