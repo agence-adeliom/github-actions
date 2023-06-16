@@ -27,6 +27,10 @@ on:
                 required: false
                 type: boolean
                 default: true
+            npm-cache:
+                required: false
+                type: string
+                default: 'npm'
         secrets:
             GRAVITYFORMS_KEY:
                 required: false
@@ -81,7 +85,7 @@ jobs:
               working-directory: ${{ inputs.working-directory }}
               continue-on-error: true
               run: composer config http-basic.auth-acf-composer-proxy.pivvenit.net licensekey ${{ env.KEY }}
-            
+
             - name: Add GRAVITYFORMS_KEY to env
               env:
                 KEY: ${{ secrets.GRAVITYFORMS_KEY }}
@@ -89,7 +93,7 @@ jobs:
               working-directory: ${{ inputs.working-directory }}
               continue-on-error: true
               run: echo "GRAVITY_FORMS_KEY=${{ env.KEY }}" >> .env
-              
+
             - name: Add ACF_PRO_KEY to env
               env:
                 KEY: ${{ secrets.ACF_PRO_KEY }}
@@ -97,8 +101,8 @@ jobs:
               working-directory: ${{ inputs.working-directory }}
               continue-on-error: true
               run: echo "ACF_PRO_KEY=${{ env.KEY }}" >> .env
-    
-            
+
+
             # On créé le cache de composer pour prendre moins de temps à build
             - name: Get Composer Cache Directory
               id: composer-cache
@@ -127,8 +131,20 @@ jobs:
               if: ${{ inputs.use-node }}
               with:
                   node-version: ${{ inputs.node }}
-                  cache: npm
+                  cache: ${{ inputs.npm-cache }}
                   cache-dependency-path: '${{ inputs.working-directory }}/package-lock.json'
+
+            # On install les dependances Node depuis le cache
+            - name: Install NPM dependencies from cache
+              if: ${{ inputs.use-node && inputs.npm-cache == 'npm' }}
+              working-directory: ${{ inputs.working-directory }}/${{ inputs.themes_path }}/${{ inputs.theme }}
+              run: npm ci
+
+            # On install les dependances Node sans le cache
+            - name: Install NPM dependencies from source
+              if: ${{ inputs.use-node && inputs.npm-cache == '' }}
+              working-directory: ${{ inputs.working-directory }}/${{ inputs.themes_path }}/${{ inputs.theme }}
+              run: npm i
 
             # On install les dependances Node
             - name: Install NPM dependencies
