@@ -24,7 +24,7 @@ concurrency: adeliom_deploy
 jobs:
     deploy:
         name: Déploiement
-        runs-on: ["self-hosted", "ubuntu"]
+        runs-on: adeliom
         steps:
             -   uses: actions/checkout@v3
 

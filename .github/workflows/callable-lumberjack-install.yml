@@ -39,7 +39,7 @@ on:
 
 jobs:
     build:
-        runs-on: ["self-hosted", "ubuntu"]
+        runs-on: adeliom
         steps:
             # On copie le repo
             - uses: actions/checkout@v3

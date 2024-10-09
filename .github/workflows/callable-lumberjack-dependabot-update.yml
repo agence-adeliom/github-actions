@@ -200,7 +200,7 @@ jobs:
             fi
 
   notify:
-    runs-on: ["self-hosted", "ubuntu"]
+    runs-on: adeliom
     needs: [ auto_approve_and_merge ]
     steps:
       - name: Notify

@@ -27,7 +27,7 @@ on:
 jobs:
     deployer:
         name: 🎉 Deployer
-        runs-on: ["self-hosted", "ubuntu"]
+        runs-on: adeliom
         steps:
             - uses: actions/checkout@v3
 

@@ -44,7 +44,7 @@ jobs:
       themes_path: ${{ inputs.themes_path }}
   deployer:
     name: 🎉 Setup Deployer
-    runs-on: ["self-hosted", "ubuntu"]
+    runs-on: adeliom
     needs: ["install"]
     steps:
       - uses: actions/checkout@v3
