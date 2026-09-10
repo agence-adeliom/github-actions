@@ -105,6 +105,16 @@ jobs:
         continue-on-error: true
         run: composer config http-basic.gf-composer-proxy.arnaud-ritti.workers.dev licensekey ${{ env.KEY }}
 
+      # Depot officiel Gravity Forms : identifiant = cle de licence,
+      # mot de passe = une URL de site quelconque (non validee par GF).
+      - name: Composer auth for Gravity Forms - (OFFICIAL)
+        env:
+          KEY: ${{ secrets.GRAVITYFORMS_KEY }}
+        if: "${{ env.KEY != '' && steps.metadata.outputs.package-ecosystem == 'composer'}}"
+        working-directory: ${{ inputs.working-directory }}
+        continue-on-error: true
+        run: composer config http-basic.composer.gravity.io ${{ env.KEY }} https://adeliom.ci.local
+
       - name: Composer auth for ACF Pro
         env:
           KEY: ${{ secrets.ACF_PRO_KEY }}
